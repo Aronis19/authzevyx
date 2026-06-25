@@ -36,10 +36,10 @@
               <div class="h-px flex-1 bg-border"></div>
             </div>
             <div class="grid w-full grid-cols-2 gap-3">
-              <a class="flex flex-col items-center justify-center rounded-xl bg-[#5865F2] p-3 text-white" href="https://discord.gg/zevyxeu">
+              <a class="group relative flex flex-col items-center justify-center gap-1 overflow-hidden rounded-xl bg-[#5865F2] p-3 text-white transition-all hover:-translate-y-0.5 hover:bg-[#4752C4] hover:shadow-lg hover:shadow-[#5865F2]/25 active:scale-[0.98]">
                 <span class="text-[10px] font-bold uppercase">Discord</span>
               </a>
-              <a class="flex flex-col items-center justify-center rounded-xl bg-secondary p-3 text-secondary-foreground border border-border" href="mailto:podpora@zevyx.eu">
+              <a class="group relative flex flex-col items-center justify-center gap-1 overflow-hidden rounded-xl bg-secondary p-3 text-secondary-foreground border border-border transition-all hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground hover:shadow-lg active:scale-[0.98]">
                 <span class="text-[10px] font-bold uppercase">E-mail</span>
               </a>
             </div>
@@ -220,7 +220,7 @@
         </section>
       </main>
     `;
-    q("[data-logout]")?.addEventListener("click", () => location.reload());
+    q("[data-logout]")?.addEventListener("click", () => { localStorage.removeItem(STORAGE_KEY); location.reload(); });
   }
 
   function setTab(name) {
@@ -257,7 +257,7 @@
           password: q('[name="password"]', login).value,
           hcaptchaToken: captcha
         });
-        profile(data.user || {});
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user || {})); profile(data.user || {});
       } catch (err) {
         msg(login, err.message, "error");
         resetCaptcha(login);
@@ -296,6 +296,11 @@
   }
 
   function boot() {
+    const savedUser = localStorage.getItem(STORAGE_KEY);
+    if (savedUser) {
+      if (q("[data-logout]")) return;
+      try { profile(JSON.parse(savedUser)); return; } catch { localStorage.removeItem(STORAGE_KEY); }
+    }
     document.body.innerHTML = shell();
     q('[data-panel="login"]').innerHTML = card("login");
     q('[data-panel="register"]').innerHTML = card("register");
