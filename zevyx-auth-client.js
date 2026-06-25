@@ -36,14 +36,14 @@
               <div class="h-px flex-1 bg-border"></div>
             </div>
             <div class="grid w-full grid-cols-2 gap-3">
-              <a class="group relative flex flex-col items-center justify-center gap-1 overflow-hidden rounded-xl bg-[#5865F2] p-3 text-white transition-all hover:-translate-y-0.5 hover:bg-[#4752C4] hover:shadow-lg hover:shadow-[#5865F2]/25 active:scale-[0.98]" href="https://discord.gg/zevyxeu">
-                <svg xmlns="http://www.w3.org/2000/svg" class="relative h-5 w-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
+              <button type="button" class="group relative flex flex-col items-center justify-center gap-1 overflow-hidden rounded-xl bg-[#5865F2] p-3 text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#4752C4] hover:shadow-lg hover:shadow-[#5865F2]/30 active:scale-[0.98]" onclick="window.open('https://discord.gg/zevyxeu', '_blank', 'noopener')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="relative h-5 w-5 transition-transform duration-200 group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
                 <span class="text-[10px] font-bold uppercase">Discord</span>
-              </a>
-              <a class="group relative flex flex-col items-center justify-center gap-1 overflow-hidden rounded-xl bg-secondary p-3 text-secondary-foreground border border-border transition-all hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground hover:shadow-lg active:scale-[0.98]" href="mailto:podpora@zevyx.eu">
-                <svg xmlns="http://www.w3.org/2000/svg" class="relative h-5 w-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+              </button>
+              <button type="button" class="group relative flex flex-col items-center justify-center gap-1 overflow-hidden rounded-xl bg-secondary p-3 text-secondary-foreground border border-border transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 hover:border-white/20 hover:shadow-lg active:scale-[0.98]" onclick="window.location.href='mailto:podpora@zevyx.eu'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="relative h-5 w-5 transition-transform duration-200 group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
                 <span class="text-[10px] font-bold uppercase">E-mail</span>
-              </a>
+              </button>
             </div>
           </div>
         </div>
