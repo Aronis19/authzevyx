@@ -1,103 +1,3 @@
-  }
-
-  const parts = storedHash.split("$");
-  if (parts.length !== 4 || !parts[2] || !parts[3]) {
-    return false;
-  }
-
-  const expected = `$SHA$${parts[2]}$${sha256(`${sha256(password)}${parts[2]}`)}`;
-  const a = Buffer.from(expected);
-  const b = Buffer.from(storedHash);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-};
-
-function offlineUuid(username) {
-  const bytes = Buffer.from(`OfflinePlayer:${username}`, "utf8");
-  const hash = crypto.createHash("md5").update(bytes).digest();
-  hash[6] = (hash[6] & 0x0f) | 0x30;
-  hash[8] = (hash[8] & 0x3f) | 0x80;
-  const hex = hash.toString("hex");
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-}
-
-function pick(row, names) {
-  for (const name of names) {
-    if (row && row[name] !== undefined && row[name] !== null && row[name] !== "") {
-      return row[name];
-    }
-  }
-  return null;
-}
-
-function normalizeMillis(value) {
-  if (!value) {
-    return null;
-  }
-  const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) {
-    return null;
-  }
-  return number < 100000000000 ? number * 1000 : number;
-}
-
-async function getColumns() {
-  const [rows] = await pool.query(`SHOW COLUMNS FROM ${quote(tableName)}`);
-  return new Set(rows.map((row) => row.Field));
-}
-
-function getClientIp(req) {
-  return String(req.ip || req.headers["x-forwarded-for"] || "").split(",")[0].trim();
-}
-
-function cleanUsername(username) {
-  return String(username || "").trim();
-}
-
-function cleanEmail(email) {
-  const value = String(email || "").trim().toLowerCase();
-  return value || null;
-}
-
-function validateUsername(username) {
-  return /^[A-Za-z0-9_]{3,16}$/.test(username);
-}
-
-function validatePassword(password) {
-  return typeof password === "string" && password.length >= 6 && password.length <= 128;
-}
-
-function validateEmail(email) {
-  return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-async function verifyHcaptcha(token, ip) {
-  const secret = process.env.HCAPTCHA_SECRET;
-  if (!secret) {
-    return true;
-  }
-
-  if (!token) {
-    return false;
-  }
-
-  const body = new URLSearchParams({
-    secret,
-    response: token,
-    remoteip: ip || ""
-  });
-
-  const response = await fetch("https://hcaptcha.com/siteverify", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body
-  });
-
-  const result = await response.json();
-  return Boolean(result.success);
-}
-
-async function findUser(columns, identifier) {
-  const fields = [];
   const params = { identifier };
 
   for (const column of ["username", "realname", "email"]) {
@@ -248,3 +148,29 @@ app.post("/api/login", async (req, res) => {
 app.post("/api/forgot-password", async (req, res) => {
   try {
     const identifier = String(req.body.identifier || req.body.email || req.body.username || "").trim();
+    const ip = getClientIp(req);
+
+    if (!identifier) {
+      return res.status(400).json({ ok: false, error: "Vypln e-mail nebo herni jmeno." });
+    }
+    if (!await verifyHcaptcha(req.body.hcaptchaToken, ip)) {
+      return res.status(400).json({ ok: false, error: "hCaptcha se nepodarila overit." });
+    }
+
+    return res.json({
+      ok: true,
+      message: "Pokud ucet existuje, napis na podpora@zevyx.eu pro obnovu hesla."
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ ok: false, error: "Serverova chyba pri obnove hesla." });
+  }
+});
+
+app.use((req, res) => {
+  res.status(404).json({ ok: false, error: "Endpoint neexistuje." });
+});
+
+app.listen(port, () => {
+  console.log(`Zevyx Auth API bezi na portu ${port}`);
+});
