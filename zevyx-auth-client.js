@@ -65,23 +65,23 @@
     return `
       <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
         <div class="grid items-start gap-2 px-6 text-center">
-          <div class="font-semibold text-xl">${login ? "Prihlas se do serveru" : "Zaregistruj se na server"}</div>
-          <div class="text-muted-foreground text-sm">${login ? "Prihlas se svymi udaji ze serveru" : "Vytvor si ucet pro Minecraft server"}</div>
+          <div class="font-semibold text-xl">${login ? "Přihlášení na Info Panel" : "Registrace na Info Panel"}</div>
+          <div class="text-muted-foreground text-sm">${login ? "Přihlas se pomocí údajů ze serveru." : "Vytvoř si účet pro Minecraft server i na."}</div>
         </div>
         <div class="px-6">
           <form data-auth-form="${kind}" class="flex flex-col items-center gap-6">
             ${
               login
-                ? field("identifier", "E-mailova adresa nebo herni jmeno", "text", "hrac@email.cz nebo hrac", "username") +
-                  field("password", "Uzivatelske heslo", "password", "********", "current-password")
-                : field("username", "Herni jmeno", "text", "Hrac", "username") +
-                  field("email", "E-mailova adresa", "email", "hrac@email.cz", "email") +
+                ? field("identifier", "E-mail nebo herní jméno", "text", "hráč@email.cz", "username") +
+                  field("password", "Heslo", "password", "********", "current-password")
+                : field("username", "Herní jméno", "text", "Hráč", "username") +
+                  field("email", "E-mailová adresa", "email", "hráč@email.cz", "email") +
                   field("password", "Heslo", "password", "********", "new-password")
             }
             <div class="flex flex-col gap-2 items-center w-full"><div data-captcha></div></div>
             <div data-message class="hidden"></div>
             <button class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 w-full" type="submit">
-              ${login ? "Prihlasit se" : "Zaregistrovat se"}
+              ${login ? "Přihlásit se" : "Zaregistrovat se"}
             </button>
           </form>
         </div>
