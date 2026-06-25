@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: zevyx-auth-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_ORIGIN
+        value: https://aronis19.github.io
+      - key: MYSQL_HOST
+        value: mysql.blazehost.cz
+      - key: MYSQL_PORT
+        value: 3306
+      - key: MYSQL_DATABASE
+        value: s867_authme
+      - key: MYSQL_USER
+        value: u867_ElkYhyzLSA
+      - key: AUTHME_TABLE
+        value: authme
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: HCAPTCHA_SECRET
+        sync: false
