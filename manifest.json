@@ -1,0 +1,14 @@
+{
+  "name": "Zevyx Auth",
+  "short_name": "Zevyx Auth",
+  "icons": [
+    {
+      "src": "./favicon-placeholder.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#8f3921",
+  "background_color": "#8f3921",
+  "display": "standalone"
+}
