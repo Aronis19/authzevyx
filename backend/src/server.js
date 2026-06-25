@@ -1,53 +1,3 @@
-import crypto from "node:crypto";
-import cors from "cors";
-import dotenv from "dotenv";
-import express from "express";
-import mysql from "mysql2/promise";
-
-dotenv.config();
-
-const app = express();
-const port = Number(process.env.PORT || 10000);
-const tableName = process.env.AUTHME_TABLE || "authme";
-
-if (!/^[A-Za-z0-9_]+$/.test(tableName)) {
-  throw new Error("AUTHME_TABLE muze obsahovat jen pismena, cisla a podtrzitko.");
-}
-
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  port: Number(process.env.MYSQL_PORT || 3306),
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  waitForConnections: true,
-  connectionLimit: 5,
-  namedPlaceholders: true
-});
-
-app.disable("x-powered-by");
-app.set("trust proxy", true);
-app.use(express.json({ limit: "32kb" }));
-app.use(cors({
-  origin(origin, callback) {
-    const allowed = process.env.FRONTEND_ORIGIN || "https://aronis19.github.io";
-    if (!origin || origin === allowed || origin.startsWith(`${allowed}/`)) {
-      return callback(null, true);
-    }
-    return callback(new Error("CORS origin blocked"));
-  }
-}));
-
-const quote = (name) => `\`${String(name).replaceAll("`", "``")}\``;
-const sha256 = (value) => crypto.createHash("sha256").update(value, "utf8").digest("hex");
-const createAuthMeSha256 = (password) => {
-  const salt = crypto.randomBytes(12).toString("base64url").slice(0, 16);
-  return `$SHA$${salt}$${sha256(`${sha256(password)}${salt}`)}`;
-};
-
-const verifyAuthMeSha256 = (password, storedHash) => {
-  if (typeof storedHash !== "string" || !storedHash.startsWith("$SHA$")) {
-    return false;
   }
 
   const parts = storedHash.split("$");
@@ -60,6 +10,35 @@ const verifyAuthMeSha256 = (password, storedHash) => {
   const b = Buffer.from(storedHash);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 };
+
+function offlineUuid(username) {
+  const bytes = Buffer.from(`OfflinePlayer:${username}`, "utf8");
+  const hash = crypto.createHash("md5").update(bytes).digest();
+  hash[6] = (hash[6] & 0x0f) | 0x30;
+  hash[8] = (hash[8] & 0x3f) | 0x80;
+  const hex = hash.toString("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function pick(row, names) {
+  for (const name of names) {
+    if (row && row[name] !== undefined && row[name] !== null && row[name] !== "") {
+      return row[name];
+    }
+  }
+  return null;
+}
+
+function normalizeMillis(value) {
+  if (!value) {
+    return null;
+  }
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) {
+    return null;
+  }
+  return number < 100000000000 ? number * 1000 : number;
+}
 
 async function getColumns() {
   const [rows] = await pool.query(`SHOW COLUMNS FROM ${quote(tableName)}`);
@@ -131,7 +110,11 @@ async function findUser(columns, identifier) {
     throw new Error("AuthMe tabulka nema username/realname/email sloupec.");
   }
 
-  const selectColumns = [...columns].filter((column) => ["id", "username", "realname", "email", "password"].includes(column));
+  const wantedColumns = [
+    "id", "username", "realname", "email", "password", "ip", "lastip", "regip",
+    "regdate", "lastlogin", "hasSession", "isLogged", "totp", "uuid", "premiumUuid"
+  ];
+  const selectColumns = [...columns].filter((column) => wantedColumns.includes(column));
   const [rows] = await pool.execute(
     `SELECT ${selectColumns.map(quote).join(", ")} FROM ${quote(tableName)} WHERE ${fields.join(" OR ")} LIMIT 1`,
     params
@@ -242,7 +225,18 @@ app.post("/api/login", async (req, res) => {
       message: "Prihlaseni probehlo.",
       user: {
         username: user.realname || user.username,
-        email: user.email || null
+        email: user.email || null,
+        uuid: pick(user, ["uuid", "premiumUuid"]) || offlineUuid(user.realname || user.username),
+        rank: "Hrac",
+        gems: 0,
+        shards: 0,
+        fragments: 0,
+        ip: pick(user, ["lastip", "ip", "regip"]),
+        firstLogin: normalizeMillis(user.regdate),
+        lastLogin: normalizeMillis(user.lastlogin),
+        playedTime: null,
+        premium: Boolean(user.hasSession || user.isLogged),
+        premiumToken: user.hasSession ? String(user.hasSession) : null
       }
     });
   } catch (error) {
@@ -254,29 +248,3 @@ app.post("/api/login", async (req, res) => {
 app.post("/api/forgot-password", async (req, res) => {
   try {
     const identifier = String(req.body.identifier || req.body.email || req.body.username || "").trim();
-    const ip = getClientIp(req);
-
-    if (!identifier) {
-      return res.status(400).json({ ok: false, error: "Vypln e-mail nebo herni jmeno." });
-    }
-    if (!await verifyHcaptcha(req.body.hcaptchaToken, ip)) {
-      return res.status(400).json({ ok: false, error: "hCaptcha se nepodarila overit." });
-    }
-
-    return res.json({
-      ok: true,
-      message: "Pokud ucet existuje, napis na podpora@zevyx.eu pro obnovu hesla."
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ ok: false, error: "Serverova chyba pri obnove hesla." });
-  }
-});
-
-app.use((req, res) => {
-  res.status(404).json({ ok: false, error: "Endpoint neexistuje." });
-});
-
-app.listen(port, () => {
-  console.log(`Zevyx Auth API bezi na portu ${port}`);
-});
