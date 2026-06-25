@@ -1,4 +1,3 @@
-cat > zevyx-auth-client.js <<'EOF'
 (function () {
   const API_BASE = "https://zevyx-auth-api.onrender.com";
   const HCAPTCHA_SITE_KEY = "d8c0836c-7382-4bd2-b262-2ee86cf293b6";
@@ -312,4 +311,3 @@ cat > zevyx-auth-client.js <<'EOF'
     boot();
   }
 })();
-EOF
