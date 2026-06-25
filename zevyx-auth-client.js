@@ -51,14 +51,25 @@
     `;
   }
 
-  function field(name, label, type, placeholder, autocomplete) {
-    return `
-      <div class="flex w-full flex-col gap-1">
-        <label class="text-sm font-medium" for="zevyx-${name}">${label}</label>
-        <input id="zevyx-${name}" name="${name}" type="${type}" placeholder="${placeholder}" autocomplete="${autocomplete}" class="placeholder:text-muted-foreground border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
+function field(name, label, type, placeholder, autocomplete) {
+  const isPassword = type === "password";
+
+  return `
+    <div class="flex w-full flex-col gap-1">
+      <label class="text-sm font-medium" for="zevyx-${name}">${label}</label>
+      <div class="${isPassword ? "relative" : ""}">
+        <input id="zevyx-${name}" name="${name}" type="${type}" placeholder="${placeholder}" autocomplete="${autocomplete}" class="placeholder:text-muted-foreground border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 ${isPassword ? "pr-10" : ""} text-base shadow-xs outline-none md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
+        ${
+          isPassword
+            ? `<button type="button" data-password-toggle="zevyx-${name}" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition hover:text-foreground" aria-label="Zobrazit heslo">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>`
+            : ""
+        }
       </div>
-    `;
-  }
+    </div>
+  `;
+}
 
   function card(kind) {
     const login = kind === "login";
@@ -107,7 +118,7 @@
       body: JSON.stringify(body)
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok || data.ok === false) throw new Error(data.error || "Neco se nepovedlo.");
+    if (!res.ok || data.ok === false) throw new Error(data.error || "Něco se nepovedlo.");
     return data;
   }
 
@@ -145,7 +156,7 @@
       });
       box.dataset.widgetId = String(id);
     } catch (e) {
-      msg(form, "Captcha se nepodarila nacist. Zkus vypnout AdBlock nebo obnovit stranku.", "error");
+      msg(form, "Captcha se nepodařila načíst. Zkus vypnout AdBlock nebo obnovit stránku.", "error");
     }
   }
 
@@ -210,7 +221,7 @@
               </tbody>
             </table>
           </div>
-          <h2 class="mb-4 mt-8 text-xl font-bold">Cekaji na tvou odpoved</h2>
+          <h2 class="mb-4 mt-8 text-xl font-bold">Staff čeká na tvou odpověď.</h2>
           <div class="overflow-hidden rounded-lg border border-border bg-card">
             <table class="w-full border-collapse text-sm">
               <thead class="bg-muted/40 text-muted-foreground">
@@ -247,7 +258,7 @@
       e.preventDefault();
       const captcha = token(login);
       if (!captcha) {
-        msg(login, "Potvrd hCaptchu.", "error");
+        msg(login, "Potvrď Captchu.", "error");
         await renderCaptcha(login);
         return;
       }
@@ -272,7 +283,7 @@
       e.preventDefault();
       const captcha = token(register);
       if (!captcha) {
-        msg(register, "Potvrd hCaptchu.", "error");
+        msg(register, "Potvrď Captchu.", "error");
         await renderCaptcha(register);
         return;
       }
@@ -285,7 +296,7 @@
           password: q('[name="password"]', register).value,
           hcaptchaToken: captcha
         });
-        msg(register, data.message || "Registrace hotova.", "success");
+        msg(register, data.message || "Registrace hotová.", "success");
         register.reset();
         resetCaptcha(register);
       } catch (err) {
@@ -297,21 +308,35 @@
     });
   }
 
-  function boot() {
-    const savedUser = localStorage.getItem(STORAGE_KEY);
-    if (savedUser) {
-      if (q("[data-logout]")) return;
-      try { profile(JSON.parse(savedUser)); return; } catch { localStorage.removeItem(STORAGE_KEY); }
-    }
-    document.body.innerHTML = shell();
-    q('[data-panel="login"]').innerHTML = card("login");
-    q('[data-panel="register"]').innerHTML = card("register");
-    document.querySelectorAll("[data-tab]").forEach((tab) => {
-      tab.addEventListener("click", () => setTab(tab.dataset.tab));
-    });
-    bind();
-    setTab("login");
+function boot() {
+  const savedUser = localStorage.getItem(STORAGE_KEY);
+  if (savedUser) {
+    if (q("[data-logout]")) return;
+    try { profile(JSON.parse(savedUser)); return; } catch { localStorage.removeItem(STORAGE_KEY); }
   }
+
+  document.body.innerHTML = shell();
+  q('[data-panel="login"]').innerHTML = card("login");
+  q('[data-panel="register"]').innerHTML = card("register");
+
+  document.querySelectorAll("[data-password-toggle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const input = document.getElementById(button.dataset.passwordToggle);
+      if (!input) return;
+
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      button.setAttribute("aria-label", visible ? "Zobrazit heslo" : "Skrýt heslo");
+    });
+  });
+
+  document.querySelectorAll("[data-tab]").forEach((tab) => {
+    tab.addEventListener("click", () => setTab(tab.dataset.tab));
+  });
+
+  bind();
+  setTab("login");
+}
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);
