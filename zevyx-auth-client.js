@@ -1,6 +1,52 @@
+
+  function getCaptchaToken(form) {
+    const el = $("[data-captcha]", form);
+    if (!el || !window.hcaptcha || !el.dataset.widgetId) return "";
+    return window.hcaptcha.getResponse(el.dataset.widgetId);
+  }
+
+  function resetCaptcha(form) {
+    const el = $("[data-captcha]", form);
+    if (el && window.hcaptcha && el.dataset.widgetId) {
+      window.hcaptcha.reset(el.dataset.widgetId);
+    }
+  }
+
+  function formatDate(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return new Intl.DateTimeFormat("cs-CZ", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    }).format(date);
+  }
+
+  function renderProfile(user) {
+    const rows = [
+      ["Herni jmeno", user.username || "-"],
+      ["E-mailova adresa", user.email || "-"],
+      ["UUID", user.uuid || "-"],
+      ["Hodnost", user.rank || "Hrac"],
+      ["IP Adresa", "********"],
+      ["Gemy", user.gems ?? 0],
+      ["Shardy", user.shards ?? 0],
+      ["Ulomky", user.fragments ?? 0],
+      ["Prvni prihlaseni", formatDate(user.firstLogin)],
+      ["Posledni prihlaseni", formatDate(user.lastLogin)],
+      ["Odehrany cas", user.playedTime || "-"],
+      ["Premium (Auto login)", user.premium ? "Zapnuto" : "Vypnuto"]
+    ];
+
+    document.body.innerHTML = `
+      <main class="bg-background min-h-svh text-foreground">
         <div class="border-b border-border px-5 py-4 text-sm text-muted-foreground">
           <span>Profil</span><span class="mx-2">›</span><span class="font-semibold text-foreground">Informace</span>
-          <button type="button" data-zevyx-logout class="float-right rounded-md border border-border px-3 py-1 text-xs hover:bg-muted">Odhlasit</button>
+          <button type="button" data-logout class="float-right rounded-md border border-border px-3 py-1 text-xs hover:bg-muted">Odhlasit</button>
         </div>
         <section class="p-5">
           <h1 class="mb-4 text-lg font-bold uppercase tracking-wide">Informace</h1>
@@ -10,7 +56,7 @@
                 ${rows.map(([label, value]) => `
                   <tr class="border-b border-border last:border-b-0">
                     <th class="w-1/2 border-r border-border px-4 py-3 text-left font-bold">${escapeHtml(label)}</th>
-                    <td class="px-4 py-3">${String(value).includes("<span") ? value : escapeHtml(value)}</td>
+                    <td class="px-4 py-3">${escapeHtml(value)}</td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -27,150 +73,102 @@
                   <th class="px-4 py-3 text-left">Akce</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr><td class="px-4 py-6 text-muted-foreground" colspan="4">Zadne cekajici polozky.</td></tr>
-              </tbody>
+              <tbody><tr><td class="px-4 py-6 text-muted-foreground" colspan="4">Zadne cekajici polozky.</td></tr></tbody>
             </table>
           </div>
         </section>
       </main>
     `;
-
-    document.querySelector("[data-zevyx-logout]")?.addEventListener("click", () => location.reload());
+    $("[data-logout]")?.addEventListener("click", () => location.reload());
   }
 
-  function setupLoginForm() {
-    const form = document.querySelector("#radix-_R_pbsnqlb_-content-sign-in form");
-    if (!form) return;
+  function setTab(active) {
+    document.querySelectorAll("[data-tab]").forEach((tab) => {
+      tab.dataset.active = String(tab.dataset.tab === active);
+    });
+    document.querySelectorAll("[data-panel]").forEach((panel) => {
+      panel.hidden = panel.dataset.panel !== active;
+      const form = $("form", panel);
+      if (!panel.hidden && form) renderCaptcha(form);
+    });
+  }
 
-    normalizeLoginForm(form);
-    renderCaptcha(form);
+  function bindForms() {
+    const loginForm = $('[data-auth-form="login"]');
+    const registerForm = $('[data-auth-form="register"]');
 
-    if (form.dataset.zevyxSubmitReady === "true") return;
-    form.dataset.zevyxSubmitReady = "true";
-
-    form.addEventListener("submit", async (event) => {
+    loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      event.stopImmediatePropagation();
-
-      const hcaptchaToken = captchaToken(form);
-      if (!hcaptchaToken) {
-        showMessage(form, "Potvrd hCaptchu.", "error");
-        await renderCaptcha(form);
+      const token = getCaptchaToken(loginForm);
+      if (!token) {
+        showMessage(loginForm, "Potvrd hCaptchu.", "error");
+        await renderCaptcha(loginForm);
         return;
       }
 
-      setBusy(form, true);
+      const button = $('button[type="submit"]', loginForm);
+      button.disabled = true;
       try {
         const data = await postJson("/api/login", {
-          identifier: form.querySelector('[name="identifier"]')?.value || "",
-          password: form.querySelector('[name="password"]')?.value || "",
-          hcaptchaToken
+          identifier: loginForm.identifier.value,
+          password: loginForm.password.value,
+          hcaptchaToken: token
         });
         renderProfile(data.user || {});
       } catch (error) {
-        showMessage(form, error.message, "error");
-        resetCaptcha(form);
+        showMessage(loginForm, error.message, "error");
+        resetCaptcha(loginForm);
       } finally {
-        setBusy(form, false);
+        button.disabled = false;
       }
-    }, true);
-  }
+    });
 
-  function setupRegisterForm() {
-    const form = document.querySelector('[data-zevyx-form="register"]');
-    if (!form) return;
-
-    renderCaptcha(form);
-
-    if (form.dataset.zevyxSubmitReady === "true") return;
-    form.dataset.zevyxSubmitReady = "true";
-
-    form.addEventListener("submit", async (event) => {
+    registerForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      event.stopImmediatePropagation();
-
-      const hcaptchaToken = captchaToken(form);
-      if (!hcaptchaToken) {
-        showMessage(form, "Potvrd hCaptchu.", "error");
-        await renderCaptcha(form);
+      const token = getCaptchaToken(registerForm);
+      if (!token) {
+        showMessage(registerForm, "Potvrd hCaptchu.", "error");
+        await renderCaptcha(registerForm);
         return;
       }
 
-      setBusy(form, true);
+      const button = $('button[type="submit"]', registerForm);
+      button.disabled = true;
       try {
         const data = await postJson("/api/register", {
-          username: form.querySelector('[name="username"]')?.value || "",
-          email: form.querySelector('[name="email"]')?.value || "",
-          password: form.querySelector('[name="password"]')?.value || "",
-          hcaptchaToken
+          username: registerForm.username.value,
+          email: registerForm.email.value,
+          password: registerForm.password.value,
+          hcaptchaToken: token
         });
-        showMessage(form, data.message || "Registrace hotova.", "success");
-        form.reset();
-        resetCaptcha(form);
+        showMessage(registerForm, data.message || "Registrace hotova.", "success");
+        registerForm.reset();
+        resetCaptcha(registerForm);
       } catch (error) {
-        showMessage(form, error.message, "error");
-        resetCaptcha(form);
+        showMessage(registerForm, error.message, "error");
+        resetCaptcha(registerForm);
       } finally {
-        setBusy(form, false);
+        button.disabled = false;
       }
-    }, true);
-  }
-
-  function setupForgotForm() {
-    const form = document.querySelector("form");
-    if (!form || !document.title.toLowerCase().includes("zapomen")) return;
-
-    normalizeLoginForm(form);
-    renderCaptcha(form);
-
-    if (form.dataset.zevyxSubmitReady === "true") return;
-    form.dataset.zevyxSubmitReady = "true";
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-
-      const hcaptchaToken = captchaToken(form);
-      if (!hcaptchaToken) {
-        showMessage(form, "Potvrd hCaptchu.", "error");
-        await renderCaptcha(form);
-        return;
-      }
-
-      setBusy(form, true);
-      try {
-        const data = await postJson("/api/forgot-password", {
-          identifier: form.querySelector('[name="email"]')?.value || "",
-          hcaptchaToken
-        });
-        showMessage(form, data.message || "Hotovo.", "success");
-      } catch (error) {
-        showMessage(form, error.message, "error");
-        resetCaptcha(form);
-      } finally {
-        setBusy(form, false);
-      }
-    }, true);
+    });
   }
 
   function boot() {
-    setupTabs();
-    setupLoginForm();
-    setupRegisterForm();
-    setupForgotForm();
+    if (document.body.dataset.zevyxAuthBooted === "true") return;
+    document.body.dataset.zevyxAuthBooted = "true";
+    document.body.innerHTML = appShell();
+    $('[data-panel="login"]').innerHTML = formCard("login");
+    $('[data-panel="register"]').innerHTML = formCard("register");
+    document.querySelectorAll("[data-tab]").forEach((tab) => {
+      tab.addEventListener("click", () => setTab(tab.dataset.tab));
+    });
+    bindForms();
+    setTab("login");
   }
 
-  onReady(() => {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
     boot();
-    window.addEventListener("load", boot);
-    setTimeout(boot, 300);
-    setTimeout(boot, 1200);
-
-    const observer = new MutationObserver(() => {
-      clearTimeout(observer.timer);
-      observer.timer = setTimeout(boot, 80);
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  });
+  }
 })();
