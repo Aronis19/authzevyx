@@ -154,8 +154,7 @@
   }
 
   function boot() {
-    if (document.body.dataset.zevyxAuthBooted === "true") return;
-    document.body.dataset.zevyxAuthBooted = "true";
+    if ($("[data-zevyx-app]") && $('[data-auth-form="login"]') && $('[data-auth-form="register"]')) return;
     document.body.innerHTML = appShell();
     $('[data-panel="login"]').innerHTML = formCard("login");
     $('[data-panel="register"]').innerHTML = formCard("register");
@@ -171,4 +170,17 @@
   } else {
     boot();
   }
+
+  window.addEventListener("load", boot);
+  setTimeout(boot, 250);
+  setTimeout(boot, 750);
+  setTimeout(boot, 1500);
+  setTimeout(boot, 3000);
+
+  const watchdog = setInterval(() => {
+    boot();
+    if ($("[data-zevyx-app]") && $('[data-auth-form="login"]') && $('[data-auth-form="register"]')) {
+      clearInterval(watchdog);
+    }
+  }, 500);
 })();
