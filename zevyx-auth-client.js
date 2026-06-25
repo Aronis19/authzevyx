@@ -66,7 +66,7 @@
       <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
         <div class="grid items-start gap-2 px-6 text-center">
           <div class="font-semibold text-xl">${login ? "Přihlášení na Info Panel" : "Registrace na Info Panel"}</div>
-          <div class="text-muted-foreground text-sm">${login ? "Přihlas se pomocí údajů ze serveru." : "Vytvoř si účet pro Minecraft server."}</div>
+          <div class="text-muted-foreground text-sm">${login ? "Přihlas se pomocí údajů ze serveru." : "Vytvoř si účet pro MC Server & Info Panel."}</div>
         </div>
         <div class="px-6">
           <form data-auth-form="${kind}" class="flex flex-col items-center gap-6">
