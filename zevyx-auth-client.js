@@ -205,54 +205,500 @@ function field(name, label, type, placeholder, autocomplete) {
     }).format(d);
   }
 
-  function profile(user) {
-    const rows = [
-      ["Herní Jméno", user.username || "-"],
-      ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
-      ["UUID", user.uuid || "-"],
-      ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
-      ["IP Adresa", "********"],
-      ["ZevyxCoiny", user.coins ?? 0],
-      ["První Přihlášení", formatDate(user.firstLogin)],
-      ["Poslední Přihlášení", formatDate(user.lastLogin)],
-      ["Odehraný Čas", user.playedTime || "-"],
-      ["Premium (Auto login)", user.premium ? `Zapnuto <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${esc(user.uuid)})</span>` : "Vypnuto"]
-    ];
+function profile(user) {
+  const savedTheme = localStorage.getItem("zevyx-auth-theme");
 
-    document.body.innerHTML = `
-      <main class="bg-background min-h-svh text-foreground">
-        <div class="border-b border-border px-5 py-4 text-sm text-muted-foreground">
-          <span>Profil</span><span class="mx-2"> › </span><span class="font-semibold text-foreground">Informace</span>
-          <button type="button" data-logout class="float-right rounded-md border border-border px-3 py-1 text-xs hover:bg-muted">Odhlásit</button>
+  if (savedTheme) {
+    document.documentElement.classList.toggle("dark", savedTheme === "dark");
+  } else if (!document.documentElement.classList.contains("dark")) {
+    document.documentElement.classList.add("dark");
+  }
+
+  const username = user.username || "Hráč";
+  const avatarUrl = `https://mc-heads.net/avatar/${encodeURIComponent(username)}/64`;
+
+  const rows = [
+    ["Herní Jméno", user.username || "-"],
+    ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
+    ["UUID", user.uuid || "-"],
+    ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
+    ["IP Adresa", "********"],
+    ["ZevyxCoiny", user.coins ?? 0],
+    ["První Přihlášení", formatDate(user.firstLogin)],
+    ["Poslední Přihlášení", formatDate(user.lastLogin)],
+    ["Odehraný Čas", user.playedTime || "-"],
+    ["Premium (Auto login)", user.premium ? `Zapnuto <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${esc(user.uuid)})</span>` : "Vypnuto"]
+  ];
+
+  document.body.innerHTML = `
+    <style>
+      [data-zevyx-dashboard] {
+        --dash-bg: #09090b;
+        --dash-panel: #101012;
+        --dash-panel-hover: #1b1b1f;
+        --dash-border: #27272a;
+        --dash-text: #f4f4f5;
+        --dash-muted: #a1a1aa;
+        --dash-active: #242428;
+
+        min-height: 100svh;
+        display: grid;
+        grid-template-columns: 164px minmax(0, 1fr);
+        background: var(--dash-bg);
+        color: var(--dash-text);
+        font-family: inherit;
+      }
+
+      html:not(.dark) [data-zevyx-dashboard] {
+        --dash-bg: #fafafa;
+        --dash-panel: #ffffff;
+        --dash-panel-hover: #f1f1f3;
+        --dash-border: #e4e4e7;
+        --dash-text: #18181b;
+        --dash-muted: #71717a;
+        --dash-active: #ededf0;
+      }
+
+      .dash-sidebar {
+        position: sticky;
+        top: 0;
+        height: 100svh;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--dash-border);
+        background: var(--dash-panel);
+        overflow: hidden;
+      }
+
+      .dash-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 44px;
+        padding: 0 12px;
+        border-bottom: 1px solid var(--dash-border);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .dash-brand img {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+      }
+
+      .dash-nav {
+        padding: 12px 8px;
+        overflow-y: auto;
+      }
+
+      .dash-nav-title {
+        margin: 8px 5px 5px;
+        color: var(--dash-muted);
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+      }
+
+      .dash-nav-button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 0;
+        border-radius: 7px;
+        padding: 7px 8px;
+        background: transparent;
+        color: var(--dash-text);
+        text-align: left;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: background .16s ease, transform .16s ease;
+      }
+
+      .dash-nav-button:hover {
+        background: var(--dash-panel-hover);
+        transform: translateX(2px);
+      }
+
+      .dash-nav-button.active {
+        background: var(--dash-active);
+      }
+
+      .dash-nav-icon {
+        width: 14px;
+        color: var(--dash-muted);
+        text-align: center;
+      }
+
+      .dash-account-wrap {
+        position: relative;
+        margin-top: auto;
+        padding: 10px 12px 14px;
+        border-top: 1px solid var(--dash-border);
+      }
+
+      .dash-account {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        border: 0;
+        border-radius: 8px;
+        padding: 8px;
+        background: var(--dash-panel-hover);
+        color: var(--dash-text);
+        font: inherit;
+        cursor: pointer;
+        transition: transform .16s ease, background .16s ease;
+      }
+
+      .dash-account:hover {
+        background: var(--dash-active);
+        transform: translateY(-1px);
+      }
+
+      .dash-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 5px;
+        image-rendering: pixelated;
+      }
+
+      .dash-account-name {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .dash-chevron {
+        width: 15px;
+        color: var(--dash-muted);
+        transition: transform .18s ease;
+      }
+
+      .dash-menu {
+        position: absolute;
+        bottom: 68px;
+        left: 12px;
+        width: 224px;
+        overflow: hidden;
+        border: 1px solid var(--dash-border);
+        border-radius: 10px;
+        background: var(--dash-panel);
+        box-shadow: 0 16px 35px rgba(0, 0, 0, .35);
+        z-index: 20;
+      }
+
+      .dash-menu-head {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px;
+        border-bottom: 1px solid var(--dash-border);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .dash-menu-button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        border: 0;
+        padding: 10px 12px;
+        background: transparent;
+        color: var(--dash-text);
+        font: inherit;
+        font-size: 12px;
+        text-align: left;
+        cursor: pointer;
+        transition: background .16s ease;
+      }
+
+      .dash-menu-button:hover {
+        background: var(--dash-panel-hover);
+      }
+
+      .dash-main {
+        min-width: 0;
+      }
+
+      .dash-header {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--dash-border);
+        color: var(--dash-muted);
+        font-size: 11px;
+      }
+
+      .dash-content {
+        padding: 20px;
+      }
+
+      .dash-title {
+        margin: 0 0 12px;
+        font-size: 14px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .dash-card {
+        overflow: hidden;
+        border: 1px solid var(--dash-border);
+        border-radius: 8px;
+        background: var(--dash-panel);
+      }
+
+      .dash-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+
+      .dash-table th,
+      .dash-table td {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--dash-border);
+      }
+
+      .dash-table tr:last-child th,
+      .dash-table tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .dash-table th {
+        width: 50%;
+        border-right: 1px solid var(--dash-border);
+        text-align: left;
+        font-weight: 800;
+      }
+
+      .dash-table td {
+        color: var(--dash-text);
+      }
+
+      .dash-section-title {
+        margin: 22px 0 10px;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      @media (max-width: 760px) {
+        [data-zevyx-dashboard] {
+          grid-template-columns: 1fr;
+        }
+
+        .dash-sidebar {
+          position: static;
+          height: auto;
+        }
+
+        .dash-nav {
+          display: none;
+        }
+
+        .dash-account-wrap {
+          display: none;
+        }
+
+        .dash-brand {
+          justify-content: center;
+        }
+
+        .dash-content {
+          padding: 14px;
+        }
+
+        .dash-table {
+          font-size: 10px;
+        }
+      }
+    </style>
+
+    <main data-zevyx-dashboard>
+      <aside class="dash-sidebar">
+        <div class="dash-brand">
+          <img src="./zevyx_branding_logo_main.png" alt="">
+          <span>ZEVYX</span>
         </div>
-        <section class="p-5">
-          <h1 class="mb-4 text-lg font-bold uppercase tracking-wide">Informace</h1>
-          <div class="overflow-hidden rounded-lg border border-border bg-card">
-            <table class="w-full border-collapse text-sm">
+
+        <nav class="dash-nav">
+          <div class="dash-nav-title">Profil</div>
+
+          <button type="button" class="dash-nav-button active">
+            <span class="dash-nav-icon">◉</span>
+            Informace
+          </button>
+
+          <button type="button" class="dash-nav-button">
+            <span class="dash-nav-icon">✎</span>
+            Změna herního jména
+          </button>
+
+          <button type="button" class="dash-nav-button">
+            <span class="dash-nav-icon">⌁</span>
+            Změna hesla
+          </button>
+
+          <button type="button" class="dash-nav-button">
+            <span class="dash-nav-icon">▥</span>
+            Statistiky
+          </button>
+
+          <button type="button" class="dash-nav-button">
+            <span class="dash-nav-icon">◈</span>
+            Vysvědčení
+          </button>
+
+          <button type="button" class="dash-nav-button">
+            <span class="dash-nav-icon">↗</span>
+            Moje transakce
+          </button>
+
+          <button type="button" class="dash-nav-button">
+            <span class="dash-nav-icon">◈</span>
+            Moje nákupy
+          </button>
+
+          <div class="dash-nav-title" style="margin-top:18px">Podpora</div>
+
+          <button type="button" class="dash-nav-button">
+            <span class="dash-nav-icon">☷</span>
+            Vytvořit ticket
+          </button>
+
+          <button type="button" class="dash-nav-button">
+            <span class="dash-nav-icon">☷</span>
+            Moje tickety
+          </button>
+        </nav>
+
+        <div class="dash-account-wrap" data-user-menu-wrap>
+          <div class="dash-menu" data-user-menu hidden>
+            <div class="dash-menu-head">
+              <img class="dash-avatar" src="${avatarUrl}" alt="">
+              <span>${esc(username)}</span>
+            </div>
+
+            <button type="button" class="dash-menu-button">
+              <span>▣</span>
+              Relace
+            </button>
+
+            <button type="button" class="dash-menu-button">
+              <span>♢</span>
+              Zabezpečení
+            </button>
+
+            <button type="button" class="dash-menu-button" data-theme-toggle>
+              <span>☾</span>
+              Přepnout motiv
+            </button>
+
+            <button type="button" class="dash-menu-button" data-logout>
+              <span>⇥</span>
+              Odhlásit se
+            </button>
+          </div>
+
+          <button type="button" class="dash-account" data-user-menu-toggle>
+            <img class="dash-avatar" src="${avatarUrl}" alt="">
+            <span class="dash-account-name">${esc(username)}</span>
+            <svg class="dash-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m7 15 5-5 5 5"/>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <div class="dash-main">
+        <header class="dash-header">
+          <span>Profil</span>
+          <span style="margin:0 8px">›</span>
+          <strong style="color:var(--dash-text)">Informace</strong>
+        </header>
+
+        <section class="dash-content">
+          <h1 class="dash-title">Informace</h1>
+
+          <div class="dash-card">
+            <table class="dash-table">
               <tbody>
                 ${rows.map(([a, b]) => `
-                  <tr class="border-b border-border last:border-b-0">
-                    <th class="w-1/2 border-r border-border px-4 py-3 text-left font-bold">${esc(a)}</th>
-                    <td class="px-4 py-3">${["Premium (Auto login)", "Hodnost"].includes(a) ? b : esc(b)}</td>
+                  <tr>
+                    <th>${esc(a)}</th>
+                    <td>${["Premium (Auto login)", "Hodnost"].includes(a) ? b : esc(b)}</td>
                   </tr>
                 `).join("")}
               </tbody>
             </table>
           </div>
-          <h2 class="mb-4 mt-8 text-xl font-bold">Staff čeká na tvou odpověď.</h2>
-          <div class="overflow-hidden rounded-lg border border-border bg-card">
-            <table class="w-full border-collapse text-sm">
-              <thead class="bg-muted/40 text-muted-foreground">
-                <tr><th class="px-4 py-3 text-left">Cislo</th><th class="px-4 py-3 text-left">Datum</th><th class="px-4 py-3 text-left">Typ</th><th class="px-4 py-3 text-left">Akce</th></tr>
+
+          <h2 class="dash-section-title">Čekají na tvou odpověď</h2>
+
+          <div class="dash-card">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Cislo</th>
+                  <th>Datum</th>
+                  <th>Typ</th>
+                  <th>Akce</th>
+                </tr>
               </thead>
-              <tbody><tr><td class="px-4 py-6 text-muted-foreground" colspan="4">Zadne cekajici polozky.</td></tr></tbody>
+              <tbody>
+                <tr>
+                  <td colspan="4" style="color:var(--dash-muted);padding:18px 10px">
+                    Žádné čekající položky.
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </section>
-      </main>
-    `;
-    q("[data-logout]")?.addEventListener("click", () => { localStorage.removeItem(STORAGE_KEY); location.reload(); });
-  }
+      </div>
+    </main>
+  `;
+
+  const toggle = q("[data-user-menu-toggle]");
+  const menu = q("[data-user-menu]");
+  const menuWrap = q("[data-user-menu-wrap]");
+
+  toggle?.addEventListener("click", () => {
+    menu.hidden = !menu.hidden;
+  });
+
+  document.addEventListener("click", (event) => {
+    if (menuWrap && !menuWrap.contains(event.target)) {
+      menu.hidden = true;
+    }
+  });
+
+  q("[data-theme-toggle]")?.addEventListener("click", () => {
+    const darkNow = !document.documentElement.classList.contains("dark");
+
+    document.documentElement.classList.toggle("dark", darkNow);
+    localStorage.setItem("zevyx-auth-theme", darkNow ? "dark" : "light");
+
+    profile(user);
+  });
+
+  q("[data-logout]")?.addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  });
+}
 
   function setTab(name) {
     document.querySelectorAll("[data-tab]").forEach((tab) => {
