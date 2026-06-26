@@ -190,7 +190,7 @@ function field(name, label, type, placeholder, autocomplete) {
       ["Herní Jméno", user.username || "-"],
       ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
       ["UUID", user.uuid || "-"],
-      ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">(${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`]
+      ["Hodnost", `${user.rank || user.rank || "Hráč"} (${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})`],
       ["IP Adresa", "********"],
       ["ZevyxCoiny", user.coins ?? 0],
       ["První Přihlášení", formatDate(user.firstLogin)],
