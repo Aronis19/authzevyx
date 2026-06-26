@@ -444,6 +444,26 @@ function profile(user) {
         background: var(--dash-panel-hover);
       }
 
+      .dash-menu-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dash-muted);
+}
+
+.dash-menu-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
       .dash-main {
         min-width: 0;
       }
@@ -722,26 +742,33 @@ function profile(user) {
               <span>${esc(username)}</span>
             </div>
 
-            <button type="button" class="dash-menu-button">
-              <span>▣</span>
-              Relace
-            </button>
+<button type="button" class="dash-menu-button">
+  <span class="dash-menu-icon">
+    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>
+  </span>
+  Relace
+</button>
 
-            <button type="button" class="dash-menu-button">
-              <span>♢</span>
-              Zabezpečení
-            </button>
+<button type="button" class="dash-menu-button">
+  <span class="dash-menu-icon">
+    <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg>
+  </span>
+  Zabezpečení
+</button>
 
-            <button type="button" class="dash-menu-button" data-theme-toggle>
-              <span>☾</span>
-              Přepnout motiv
-            </button>
+<button type="button" class="dash-menu-button" data-theme-toggle>
+  <span class="dash-menu-icon">
+    <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+  </span>
+  Přepnout motiv
+</button>
 
-            <button type="button" class="dash-menu-button" data-logout>
-              <span>⇥</span>
-              Odhlásit se
-            </button>
-          </div>
+<button type="button" class="dash-menu-button" data-logout>
+  <span class="dash-menu-icon">
+    <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 3v18H10"/></svg>
+  </span>
+  Odhlásit se
+</button>
 
           <button type="button" class="dash-account" data-user-menu-toggle>
             <img class="dash-avatar" src="${avatarUrl}" alt="">
