@@ -114,7 +114,13 @@ function parseLuckPermsPrefix(permission) {
 
 async function getLuckPermsProfile(uuid) {
   if (!lpPool || !uuid) {
-    return { rank: "Hráč", rankPrefix: null, rankIcon: null };
+    return {
+      rank: "Hráč",
+      rankPrefix: null,
+      rankIcon: null,
+      rankExpiresAt: null,
+      rankPermanent: true
+    };
   }
 
   try {
@@ -123,7 +129,29 @@ async function getLuckPermsProfile(uuid) {
       { uuid }
     );
 
-    const group = players[0]?.primary_group || "default";
+    const primaryGroup = players[0]?.primary_group || "default";
+
+    const [temporaryGroups] = await lpPool.execute(
+      `SELECT permission, expiry
+       FROM luckperms_user_permissions
+       WHERE uuid = :uuid
+         AND value = 1
+         AND permission LIKE 'group.%'
+         AND expiry > UNIX_TIMESTAMP()
+       ORDER BY expiry DESC
+       LIMIT 1`,
+      { uuid }
+    );
+
+    const temporaryGroup = temporaryGroups[0];
+
+    const group = temporaryGroup
+      ? String(temporaryGroup.permission).slice("group.".length)
+      : primaryGroup;
+
+    const rankExpiresAt = temporaryGroup
+      ? normalizeMillis(temporaryGroup.expiry)
+      : null;
 
     const [prefixRows] = await lpPool.execute(
       `SELECT permission
@@ -141,11 +169,20 @@ async function getLuckPermsProfile(uuid) {
     return {
       rank: formatRankName(group),
       rankPrefix: prefix?.raw || null,
-      rankIcon: prefix?.icon || null
+      rankIcon: prefix?.icon || null,
+      rankExpiresAt,
+      rankPermanent: !rankExpiresAt
     };
   } catch (error) {
     console.error("LuckPerms read failed:", error);
-    return { rank: "Hráč", rankPrefix: null, rankIcon: null };
+
+    return {
+      rank: "Hráč",
+      rankPrefix: null,
+      rankIcon: null,
+      rankExpiresAt: null,
+      rankPermanent: true
+    };
   }
 }
 
@@ -337,7 +374,9 @@ app.post("/api/login", async (req, res) => {
         email: user.email || null,
         uuid,
         rank: luckPerms.rank,
-        rankPrefix: luckPerms.rankPrefix,
+rankExpiresAt: luckPerms.rankExpiresAt,
+rankPermanent: luckPerms.rankPermanent,
+rankPrefix: luckPerms.rankPrefix,
         rankIcon: luckPerms.rankIcon,
         gems: 0,
         shards: 0,

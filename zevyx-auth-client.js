@@ -221,7 +221,7 @@ function profile(user) {
     ["Herní Jméno", user.username || "-"],
     ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
     ["UUID", user.uuid || "-"],
-    ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
+    ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
     ["IP Adresa", "********"],
     ["ZevyxCoiny", user.coins ?? 0],
     ["První Přihlášení", formatDate(user.firstLogin)],
