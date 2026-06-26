@@ -22,8 +22,8 @@
           <div class="flex w-full flex-col gap-6">
             <div class="flex flex-col gap-2">
               <div class="bg-muted text-muted-foreground inline-flex h-9 items-center justify-center rounded-lg p-[3px] w-full">
-                <button type="button" data-tab="login" class="h-[calc(100%-1px)] flex-1 rounded-md px-2 py-1 text-sm font-medium">Prihlasit se</button>
-                <button type="button" data-tab="register" class="h-[calc(100%-1px)] flex-1 rounded-md px-2 py-1 text-sm font-medium">Zaregistrovat se</button>
+                <button type="button" data-tab="login" class="h-[calc(100%-1px)] flex-1 rounded-md px-2 py-1 text-sm font-medium cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]">Přihlásit se</button>
+                <button type="button" data-tab="register" class="h-[calc(100%-1px)] flex-1 rounded-md px-2 py-1 text-sm font-medium cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]">Zaregistrovat se</button>
               </div>
               <section data-panel="login"></section>
               <section data-panel="register" hidden></section>
@@ -99,7 +99,11 @@ function field(name, label, type, placeholder, autocomplete) {
            <path d="M22 2 11 13"/>
          </svg>
          <span>Přihlásit se</span>`
-      : "Zaregistrovat se"
+: `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+     <path d="m22 2-7 20-4-9-9-4Z"/>
+     <path d="M22 2 11 13"/>
+   </svg>
+   <span>Zaregistrovat se</span>`
   }
 </button>
           </form>
