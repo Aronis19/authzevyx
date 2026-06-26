@@ -91,7 +91,15 @@ function field(name, label, type, placeholder, autocomplete) {
             }
             <div class="flex flex-col gap-2 items-center w-full"><div data-captcha></div></div>
             <div data-message class="hidden"></div>
-<button class="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 w-full" type="submit">
+<button
+  class="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 w-full"
+  style="cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,filter .2s ease"
+  onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 18px rgba(0,0,0,.22)'"
+  onmouseleave="this.style.transform='';this.style.boxShadow=''"
+  onmousedown="this.style.transform='scale(.98)'"
+  onmouseup="this.style.transform='translateY(-2px)'"
+  type="submit"
+>
   ${
     login
       ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
