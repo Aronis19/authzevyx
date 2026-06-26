@@ -702,36 +702,179 @@ function profile(user) {
   }
 }
 
-      @media (max-width: 760px) {
-        [data-zevyx-dashboard] {
-          grid-template-columns: 1fr;
-        }
+.mobile-bottom-nav,
+.mobile-sheet,
+.mobile-sheet-backdrop {
+  display: none;
+}
 
-        .dash-sidebar {
-          position: static;
-          height: auto;
-        }
+@media (max-width: 760px) {
+  [data-zevyx-dashboard] {
+    grid-template-columns: 1fr;
+  }
 
-        .dash-nav {
-          display: none;
-        }
+  .dash-sidebar {
+    display: none;
+  }
 
-        .dash-account-wrap {
-          display: none;
-        }
+  .dash-header {
+    min-height: 58px;
+    padding: 0 18px;
+  }
 
-        .dash-brand {
-          justify-content: center;
-        }
+  .dash-content {
+    padding: 24px 18px 96px;
+  }
 
-        .dash-content {
-          padding: 14px;
-        }
+  .dash-table {
+    font-size: 10px;
+  }
 
-        .dash-table {
-          font-size: 10px;
-        }
-      }
+  .mobile-bottom-nav {
+    position: fixed;
+    z-index: 80;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    height: 70px;
+    border-top: 1px solid var(--dash-border);
+    background: var(--dash-panel);
+  }
+
+  .mobile-bottom-nav button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 0;
+    background: transparent;
+    color: var(--dash-muted);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .mobile-bottom-nav button span {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .mobile-bottom-nav button small {
+    font-size: 10px;
+  }
+
+  .mobile-bottom-nav button.is-active {
+    color: var(--dash-text);
+  }
+
+  .mobile-sheet-backdrop {
+    position: fixed;
+    z-index: 90;
+    inset: 0;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    background: rgba(0, 0, 0, .7);
+    transition: opacity .2s ease, visibility 0s linear .2s;
+  }
+
+  .mobile-sheet-backdrop.is-open {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity .2s ease;
+  }
+
+  .mobile-sheet {
+    position: fixed;
+    z-index: 100;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: block;
+    max-height: 78svh;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid var(--dash-border);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    background: var(--dash-bg);
+    transform: translateY(110%);
+    transition: transform .26s cubic-bezier(.22, .61, .36, 1);
+  }
+
+  .mobile-sheet.is-open {
+    transform: translateY(0);
+  }
+
+  .mobile-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 2px 14px;
+    font-size: 16px;
+  }
+
+  .mobile-sheet-head button {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--dash-muted);
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .mobile-sheet-row,
+  .mobile-account-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 58px;
+    margin-bottom: 8px;
+    padding: 0 14px;
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    background: var(--dash-panel);
+    color: var(--dash-text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .mobile-sheet-row {
+    cursor: pointer;
+  }
+
+  .mobile-sheet-row span {
+    width: 20px;
+    color: var(--dash-muted);
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .mobile-account-card {
+    justify-content: flex-start;
+  }
+
+  .mobile-account-card .dash-avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .mobile-logout {
+    border-color: rgba(239, 68, 68, .4);
+    color: #f87171;
+  }
+
+  .mobile-logout span {
+    color: #f87171;
+  }
+}
 
 .dash-loader {
   position: fixed;
@@ -921,11 +1064,117 @@ function profile(user) {
         </section>
       </div>
     </main>
+
+    <nav class="mobile-bottom-nav" aria-label="Mobilní navigace">
+      <button type="button" class="is-active" data-mobile-sheet-open="profile">
+        <span>♙</span>
+        <small>Profil</small>
+      </button>
+
+      <button type="button" data-mobile-sheet-open="support">
+        <span>♧</span>
+        <small>Podpora</small>
+      </button>
+
+      <button type="button" data-mobile-sheet-open="account">
+        <span>◎</span>
+        <small>Účet</small>
+      </button>
+    </nav>
+
+    <div class="mobile-sheet-backdrop" data-mobile-sheet-backdrop></div>
+
+    <section class="mobile-sheet" data-mobile-sheet="profile">
+      <div class="mobile-sheet-head">
+        <strong>Profil</strong>
+        <button type="button" data-mobile-sheet-close>×</button>
+      </div>
+
+      <button type="button" class="mobile-sheet-row" data-mobile-sheet-close>
+        <span>♙</span> Informace
+      </button>
+
+      <button type="button" class="mobile-sheet-row">
+        <span>✎</span> Změna herního jména
+      </button>
+
+      <button type="button" class="mobile-sheet-row">
+        <span>⚿</span> Změna hesla
+      </button>
+
+      <button type="button" class="mobile-sheet-row">
+        <span>▥</span> Statistiky
+      </button>
+    </section>
+
+    <section class="mobile-sheet" data-mobile-sheet="support">
+      <div class="mobile-sheet-head">
+        <strong>Podpora</strong>
+        <button type="button" data-mobile-sheet-close>×</button>
+      </div>
+
+      <button type="button" class="mobile-sheet-row">
+        <span>♧</span> Moje tickety
+      </button>
+
+      <button type="button" class="mobile-sheet-row">
+        <span>＋</span> Vytvořit ticket
+      </button>
+    </section>
+
+    <section class="mobile-sheet" data-mobile-sheet="account">
+      <div class="mobile-sheet-head">
+        <strong>Účet</strong>
+        <button type="button" data-mobile-sheet-close>×</button>
+      </div>
+
+      <div class="mobile-account-card">
+        <img class="dash-avatar" src="${avatarUrl}" alt="">
+        <strong>${esc(username)}</strong>
+      </div>
+
+      <button type="button" class="mobile-sheet-row" data-mobile-theme-toggle>
+        <span>☼</span> Přepnout motiv
+      </button>
+
+      <button type="button" class="mobile-sheet-row mobile-logout" data-mobile-logout>
+        <span>⇥</span> Odhlásit se
+      </button>
+    </section>
   `;
 
   const toggle = q("[data-user-menu-toggle]");
   const menu = q("[data-user-menu]");
   const menuWrap = q("[data-user-menu-wrap]");
+const mobileBackdrop = q("[data-mobile-sheet-backdrop]");
+const mobileSheets = [...document.querySelectorAll("[data-mobile-sheet]")];
+const mobileButtons = [...document.querySelectorAll("[data-mobile-sheet-open]")];
+
+const closeMobileSheets = () => {
+  mobileSheets.forEach((sheet) => sheet.classList.remove("is-open"));
+  mobileBackdrop?.classList.remove("is-open");
+};
+
+mobileButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const target = button.dataset.mobileSheetOpen;
+
+    closeMobileSheets();
+
+    q(`[data-mobile-sheet="${target}"]`)?.classList.add("is-open");
+    mobileBackdrop?.classList.add("is-open");
+
+    mobileButtons.forEach((item) => {
+      item.classList.toggle("is-active", item === button);
+    });
+  });
+});
+
+document.querySelectorAll("[data-mobile-sheet-close]").forEach((button) => {
+  button.addEventListener("click", closeMobileSheets);
+});
+
+mobileBackdrop?.addEventListener("click", closeMobileSheets);
 
 const ipToggle = q("[data-ip-toggle]");
 const ipValue = q("[data-ip-value]");
@@ -977,23 +1226,28 @@ document.addEventListener("click", (event) => {
   }
 });
 
-q("[data-theme-toggle]")?.addEventListener("click", () => {
-  q("[data-top-loader]")?.classList.add("is-loading");
+document.querySelectorAll("[data-theme-toggle], [data-mobile-theme-toggle]").forEach((button) => {
+  button.addEventListener("click", () => {
+    q("[data-top-loader]")?.classList.add("is-loading");
 
-  setTimeout(() => {
-    const darkNow = !document.documentElement.classList.contains("dark");
+    setTimeout(() => {
+      const darkNow = !document.documentElement.classList.contains("dark");
 
-    document.documentElement.classList.toggle("dark", darkNow);
-    localStorage.setItem("zevyx-auth-theme", darkNow ? "dark" : "light");
+      document.documentElement.classList.toggle("dark", darkNow);
+      localStorage.setItem("zevyx-auth-theme", darkNow ? "dark" : "light");
 
-    profile(user);
-  }, 520);
+      profile(user);
+    }, 250);
+  });
 });
 
-q("[data-logout]")?.addEventListener("click", () => {
-  localStorage.removeItem(STORAGE_KEY);
-  location.reload();
+document.querySelectorAll("[data-logout], [data-mobile-logout]").forEach((button) => {
+  button.addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  });
 });
+
 }
   function setTab(name) {
     document.querySelectorAll("[data-tab]").forEach((tab) => {
