@@ -1051,7 +1051,7 @@ const updateProfile = async () => {
 };
 
 updateProfile();
-setInterval(updateProfile, 30000);
+setInterval(updateProfile, 1000);
 
 return;
 
