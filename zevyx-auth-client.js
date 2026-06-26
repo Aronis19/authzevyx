@@ -951,7 +951,7 @@ ipToggle?.addEventListener("click", () => {
 
   ipVisible = !ipVisible;
 
-  ipValue.textContent = ipVisible ? ipAddress : "********";
+  ipValue.textContent = ipVisible ? ipAddress : "**.***.**.**";
   ipToggle.innerHTML = ipVisible ? eyeOffIcon : eyeIcon;
 
   ipToggle.setAttribute(
