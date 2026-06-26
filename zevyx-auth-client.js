@@ -485,6 +485,116 @@ function profile(user) {
   font-weight: 900;
 }
 
+@media (min-width: 761px) {
+  [data-zevyx-dashboard] {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .dash-brand,
+  .dash-header {
+    min-height: 64px;
+    height: 64px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .dash-brand {
+    gap: 10px;
+    font-size: 16px;
+  }
+
+  .dash-brand img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dash-nav {
+    padding: 16px 12px;
+  }
+
+  .dash-nav-title {
+    margin: 10px 6px 7px;
+    font-size: 11px;
+  }
+
+  .dash-nav-button {
+    gap: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  .dash-nav-button.active {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px #3f3f46;
+  }
+
+  .dash-nav-icon {
+    width: 16px;
+  }
+
+  .dash-account-wrap {
+    padding: 14px 14px 16px;
+  }
+
+  .dash-account {
+    gap: 11px;
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .dash-avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .dash-account-name {
+    font-size: 14px;
+  }
+
+  .dash-menu {
+    bottom: 78px;
+    left: 14px;
+    width: 250px;
+  }
+
+  .dash-menu-head,
+  .dash-menu-button {
+    font-size: 14px;
+  }
+
+  .dash-menu-button {
+    padding: 12px 14px;
+  }
+
+  .dash-header {
+    font-size: 14px;
+  }
+
+  .dash-content {
+    padding: 28px;
+  }
+
+  .dash-title {
+    margin-bottom: 16px;
+    font-size: 18px;
+  }
+
+  .dash-table {
+    font-size: 14px;
+  }
+
+  .dash-table th,
+  .dash-table td {
+    padding: 12px 16px;
+  }
+
+  .dash-section-title {
+    margin: 28px 0 14px;
+    font-size: 20px;
+  }
+}
+
       @media (max-width: 760px) {
         [data-zevyx-dashboard] {
           grid-template-columns: 1fr;
