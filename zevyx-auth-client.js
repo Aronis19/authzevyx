@@ -479,6 +479,23 @@ function profile(user) {
   text-transform: uppercase;
 }
 
+.dash-profile-table th {
+  width: 50%;
+  border-right: 1px solid var(--dash-border);
+  text-align: left;
+  font-weight: 800;
+}
+
+.dash-profile-table td {
+  text-align: left;
+  color: var(--dash-text);
+}
+
+.dash-profile-table tr:last-child th,
+.dash-profile-table tr:last-child td {
+  border-bottom: 0;
+}
+
 .dash-section-title {
   margin: 22px 0 10px;
   font-size: 20px;
@@ -734,7 +751,7 @@ function profile(user) {
           <h1 class="dash-title">Informace</h1>
 
           <div class="dash-card">
-            <table class="dash-table">
+            <table class="dash-table dash-profile-table">
               <tbody>
                 ${rows.map(([a, b]) => `
                   <tr>
