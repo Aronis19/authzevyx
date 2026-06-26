@@ -113,8 +113,16 @@ function parseLuckPermsPrefix(permission) {
 }
 
 async function getLuckPermsProfile(uuid) {
+  const fallback = {
+    rank: "Hrac",
+    rankPrefix: null,
+    rankIcon: null,
+    rankPermanent: true,
+    rankExpiresAt: null
+  };
+
   if (!lpPool || !uuid) {
-    return { rank: "Hráč", rankPrefix: null, rankIcon: null };
+    return fallback;
   }
 
   try {
@@ -124,6 +132,19 @@ async function getLuckPermsProfile(uuid) {
     );
 
     const group = players[0]?.primary_group || "default";
+
+    const [userGroupRows] = await lpPool.execute(
+      `SELECT expiry
+       FROM luckperms_user_permissions
+       WHERE uuid = :uuid
+         AND value = 1
+         AND permission = :permission
+       LIMIT 1`,
+      { uuid, permission: `group.${group}` }
+    );
+
+    const rankExpiry = Number(userGroupRows[0]?.expiry || 0);
+    const rankPermanent = !rankExpiry || rankExpiry <= 0;
 
     const [prefixRows] = await lpPool.execute(
       `SELECT permission
@@ -141,11 +162,13 @@ async function getLuckPermsProfile(uuid) {
     return {
       rank: formatRankName(group),
       rankPrefix: prefix?.raw || null,
-      rankIcon: prefix?.icon || null
+      rankIcon: prefix?.icon || null,
+      rankPermanent,
+      rankExpiresAt: rankPermanent ? null : rankExpiry * 1000
     };
   } catch (error) {
     console.error("LuckPerms read failed:", error);
-    return { rank: "Hráč", rankPrefix: null, rankIcon: null };
+    return fallback;
   }
 }
 
@@ -331,7 +354,7 @@ app.post("/api/login", async (req, res) => {
 
     return res.json({
       ok: true,
-      message: "Přihlášení proběhlo.",
+      message: "Prihlaseni probehlo.",
       user: {
         username: user.realname || user.username,
         email: user.email || null,
@@ -339,6 +362,8 @@ app.post("/api/login", async (req, res) => {
         rank: luckPerms.rank,
         rankPrefix: luckPerms.rankPrefix,
         rankIcon: luckPerms.rankIcon,
+        rankPermanent: luckPerms.rankPermanent,
+        rankExpiresAt: luckPerms.rankExpiresAt,
         gems: 0,
         shards: 0,
         fragments: 0,
