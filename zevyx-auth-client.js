@@ -556,10 +556,10 @@ function profile(user) {
     font-size: 16px;
   }
 
-  .dash-brand img {
-    width: 30px;
-    height: 30px;
-  }
+.dash-brand img {
+  width: 48px;
+  height: 48px;
+}
 
   .dash-nav {
     padding: 16px 12px;
