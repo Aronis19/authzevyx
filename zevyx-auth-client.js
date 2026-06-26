@@ -239,7 +239,7 @@ function profile(user) {
     ["UUID", user.uuid || "-"],
     ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
     ["IP Adresa", `
-  <span data-ip-value>${ipAddress === "-" ? "-" : "********"}</span>
+  <span data-ip-value>${ipAddress === "-" ? "-" : "**.***.**.**"}</span>
 
   <button
     type="button"
