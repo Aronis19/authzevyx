@@ -238,20 +238,22 @@ function profile(user) {
     ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
     ["UUID", user.uuid || "-"],
     ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
-    ["IP Adresa", `
-  <span data-ip-value>${ipAddress === "-" ? "-" : "**.***.**.**"}</span>
+["IP Adresa", `
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+    <span data-ip-value>${ipAddress === "-" ? "-" : "**.***.**.**"}</span>
 
-  <button
-    type="button"
-    data-ip-toggle
-    aria-label="Zobrazit IP adresu"
-    style="margin-left:8px;vertical-align:middle;border:0;background:transparent;color:var(--dash-muted);cursor:pointer;padding:2px"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  </button>
+    <button
+      type="button"
+      data-ip-toggle
+      aria-label="Zobrazit IP adresu"
+      style="border:0;background:transparent;color:var(--dash-muted);cursor:pointer;padding:2px;display:flex"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    </button>
+  </div>
 `],
     ["ZevyxCoiny", user.coins ?? 0],
     ["První Přihlášení", formatDate(user.firstLogin)],
