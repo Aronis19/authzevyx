@@ -689,16 +689,18 @@ function profile(user) {
   overflow: hidden;
   pointer-events: none;
   opacity: 0;
-  transition: opacity .15s ease;
+  transition: opacity .2s ease;
 }
 
 .dash-loader::before {
   content: "";
   display: block;
-  width: 35%;
+  width: 42%;
   height: 100%;
-  background: #3b82f6;
-  transform: translateX(-120%);
+  background: #00b3ff;
+  box-shadow: 0 0 12px rgba(0, 179, 255, .9);
+  transform: translateX(-115%);
+  will-change: transform;
 }
 
 .dash-loader.is-loading {
@@ -706,16 +708,16 @@ function profile(user) {
 }
 
 .dash-loader.is-loading::before {
-  animation: dash-loader-move .55s ease-in-out infinite;
+  animation: dash-loader-move .85s cubic-bezier(.22, .61, .36, 1) infinite;
 }
 
 @keyframes dash-loader-move {
   from {
-    transform: translateX(-120%);
+    transform: translateX(-115%);
   }
 
   to {
-    transform: translateX(390%);
+    transform: translateX(355%);
   }
 }
 
@@ -891,7 +893,7 @@ q("[data-theme-toggle]")?.addEventListener("click", () => {
     localStorage.setItem("zevyx-auth-theme", darkNow ? "dark" : "light");
 
     profile(user);
-  }, 220);
+  }, 520);
 });
 }
 
