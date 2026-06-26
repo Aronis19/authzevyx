@@ -196,11 +196,7 @@ function field(name, label, type, placeholder, autocomplete) {
       ["První Přihlášení", formatDate(user.firstLogin)],
       ["Poslední Přihlášení", formatDate(user.lastLogin)],
       ["Odehraný Čas", user.playedTime || "-"],
-      ["Premium (Auto login)", user.premium ? `Zapnuto <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#808080git add zevyx-auth-client.js 
-
-git commit -m "v2" 
-
-git push;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">(${esc(user.uuid)})</span>` : "Vypnuto"]
+      ["Premium (Auto login)", user.premium ? `Zapnuto <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">(${esc(user.uuid)})</span>` : "Vypnuto"]
     ];
 
     document.body.innerHTML = `
