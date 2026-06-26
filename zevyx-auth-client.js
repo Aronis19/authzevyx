@@ -231,13 +231,28 @@ function profile(user) {
 
   const username = user.username || "Hráč";
   const avatarUrl = `https://visage.surgeplay.com/face/256/${encodeURIComponent(username)}`;
+  const ipAddress = user.ip || "-";
 
   const rows = [
     ["Herní Jméno", user.username || "-"],
     ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
     ["UUID", user.uuid || "-"],
     ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
-    ["IP Adresa", "********"],
+    ["IP Adresa", `
+  <span data-ip-value>${ipAddress === "-" ? "-" : "********"}</span>
+
+  <button
+    type="button"
+    data-ip-toggle
+    aria-label="Zobrazit IP adresu"
+    style="margin-left:8px;vertical-align:middle;border:0;background:transparent;color:var(--dash-muted);cursor:pointer;padding:2px"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  </button>
+`],
     ["ZevyxCoiny", user.coins ?? 0],
     ["První Přihlášení", formatDate(user.firstLogin)],
     ["Poslední Přihlášení", formatDate(user.lastLogin)],
@@ -873,7 +888,7 @@ function profile(user) {
                 ${rows.map(([a, b]) => `
                   <tr>
                     <th>${esc(a)}</th>
-                    <td>${["Premium (Auto login)", "Hodnost"].includes(a) ? b : esc(b)}</td>
+                    <td>${["Premium (Auto login)", "Hodnost", "IP Adresa"].includes(a) ? b : esc(b)}</td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -909,6 +924,41 @@ function profile(user) {
   const toggle = q("[data-user-menu-toggle]");
   const menu = q("[data-user-menu]");
   const menuWrap = q("[data-user-menu-wrap]");
+
+const ipToggle = q("[data-ip-toggle]");
+const ipValue = q("[data-ip-value]");
+
+const eyeIcon = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+`;
+
+const eyeOffIcon = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="m2 2 20 20"/>
+    <path d="M6.71 6.71C4.93 7.9 3.44 9.7 2.56 11.65a1 1 0 0 0 0 .7C4.07 15.77 7.72 18 12 18c1.34 0 2.62-.22 3.8-.63"/>
+    <path d="M10.73 5.08C11.15 5.03 11.57 5 12 5c4.85 0 8.99 3.03 10.5 7.3a1 1 0 0 1 0 .7c-.43 1.21-1.12 2.31-2 3.24"/>
+    <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"/>
+  </svg>
+`;
+
+let ipVisible = false;
+
+ipToggle?.addEventListener("click", () => {
+  if (ipAddress === "-") return;
+
+  ipVisible = !ipVisible;
+
+  ipValue.textContent = ipVisible ? ipAddress : "********";
+  ipToggle.innerHTML = ipVisible ? eyeOffIcon : eyeIcon;
+
+  ipToggle.setAttribute(
+    "aria-label",
+    ipVisible ? "Skrýt IP adresu" : "Zobrazit IP adresu"
+  );
+});
 
 const setMenuOpen = (open) => {
   menu?.classList.toggle("is-open", open);
@@ -1052,8 +1102,6 @@ const updateProfile = async () => {
 
 updateProfile();
 setInterval(updateProfile, 1000);
-
-return;
 
 return;
 
