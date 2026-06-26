@@ -1014,7 +1014,7 @@ q("[data-logout]")?.addEventListener("click", () => {
       }
     });
   }
-  
+
 function boot() {
 const savedUser = localStorage.getItem(STORAGE_KEY);
 
@@ -1026,18 +1026,36 @@ if (savedUser) {
 
     profile(cachedUser);
 
-    refreshSavedUser(cachedUser).then((freshUser) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(freshUser));
+const updateProfile = async () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return;
 
-      const rankChanged =
-        freshUser.rank !== cachedUser.rank ||
-        freshUser.rankExpiresAt !== cachedUser.rankExpiresAt ||
-        freshUser.rankPermanent !== cachedUser.rankPermanent;
+  try {
+    const oldUser = JSON.parse(saved);
+    const freshUser = await refreshSavedUser(oldUser);
 
-      if (rankChanged) {
-        profile(freshUser);
-      }
-    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(freshUser));
+
+    const changed =
+      freshUser.rank !== oldUser.rank ||
+      freshUser.rankExpiresAt !== oldUser.rankExpiresAt ||
+      freshUser.rankPermanent !== oldUser.rankPermanent ||
+      freshUser.playedTime !== oldUser.playedTime;
+
+    if (changed) {
+      profile(freshUser);
+    }
+  } catch {
+
+  }
+};
+
+updateProfile();
+setInterval(updateProfile, 30000);
+
+return;
+
+return;
 
     return;
   } catch {
