@@ -678,12 +678,56 @@ function profile(user) {
           font-size: 10px;
         }
       }
+
+.dash-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 99999;
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+
+.dash-loader::before {
+  content: "";
+  display: block;
+  width: 35%;
+  height: 100%;
+  background: #3b82f6;
+  transform: translateX(-120%);
+}
+
+.dash-loader.is-loading {
+  opacity: 1;
+}
+
+.dash-loader.is-loading::before {
+  animation: dash-loader-move .55s ease-in-out infinite;
+}
+
+@keyframes dash-loader-move {
+  from {
+    transform: translateX(-120%);
+  }
+
+  to {
+    transform: translateX(390%);
+  }
+}
+
     </style>
+
+    <div class="dash-loader" data-top-loader></div>
+
 
     <main data-zevyx-dashboard>
       <aside class="dash-sidebar">
         <div class="dash-brand">
-          <img src="./zevyx_branding_logo_main.png" alt="">
+          <img src="./zevyxlogo_small.png" alt="">
           <span>ZEVYX</span>
         </div>
 
@@ -837,19 +881,18 @@ function profile(user) {
     }
   });
 
-  q("[data-theme-toggle]")?.addEventListener("click", () => {
+q("[data-theme-toggle]")?.addEventListener("click", () => {
+  q("[data-top-loader]")?.classList.add("is-loading");
+
+  setTimeout(() => {
     const darkNow = !document.documentElement.classList.contains("dark");
 
     document.documentElement.classList.toggle("dark", darkNow);
     localStorage.setItem("zevyx-auth-theme", darkNow ? "dark" : "light");
 
     profile(user);
-  });
-
-  q("[data-logout]")?.addEventListener("click", () => {
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
-  });
+  }, 220);
+});
 }
 
   function setTab(name) {
