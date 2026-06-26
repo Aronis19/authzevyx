@@ -25,6 +25,17 @@ const pool = mysql.createPool({
   namedPlaceholders: true
 });
 
+const lpPool = process.env.LP_DB_NAME ? mysql.createPool({
+  host: process.env.LP_DB_HOST || process.env.MYSQL_HOST,
+  port: Number(process.env.LP_DB_PORT || process.env.MYSQL_PORT || 3306),
+  user: process.env.LP_DB_USER || process.env.MYSQL_USER,
+  password: process.env.LP_DB_PASSWORD || process.env.MYSQL_PASSWORD,
+  database: process.env.LP_DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 3,
+  namedPlaceholders: true
+}) : null;
+
 app.disable("x-powered-by");
 app.set("trust proxy", true);
 app.use(express.json({ limit: "32kb" }));
@@ -81,6 +92,61 @@ function normalizeMillis(value) {
   const number = Number(value);
   if (!Number.isFinite(number) || number <= 0) return null;
   return number < 100000000000 ? number * 1000 : number;
+}
+
+function formatRankName(group) {
+  const value = String(group || "hrac").replaceAll("_", " ");
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function parseLuckPermsPrefix(permission) {
+  const match = String(permission || "").match(/^prefix\.\d+\.(.+)$/);
+  if (!match) return null;
+
+  const raw = match[1];
+  const iconMatch = raw.match(/%([^%]+)%/);
+
+  return {
+    raw,
+    icon: iconMatch ? iconMatch[1] : null
+  };
+}
+
+async function getLuckPermsProfile(uuid) {
+  if (!lpPool || !uuid) {
+    return { rank: "Hráč", rankPrefix: null, rankIcon: null };
+  }
+
+  try {
+    const [players] = await lpPool.execute(
+      "SELECT primary_group FROM luckperms_players WHERE uuid = :uuid LIMIT 1",
+      { uuid }
+    );
+
+    const group = players[0]?.primary_group || "default";
+
+    const [prefixRows] = await lpPool.execute(
+      `SELECT permission
+       FROM luckperms_group_permissions
+       WHERE name = :groupName
+         AND value = 1
+         AND permission LIKE 'prefix.%'
+       ORDER BY CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(permission, '.', 2), '.', -1) AS UNSIGNED) DESC
+       LIMIT 1`,
+      { groupName: group }
+    );
+
+    const prefix = parseLuckPermsPrefix(prefixRows[0]?.permission);
+
+    return {
+      rank: formatRankName(group),
+      rankPrefix: prefix?.raw || null,
+      rankIcon: prefix?.icon || null
+    };
+  } catch (error) {
+    console.error("LuckPerms read failed:", error);
+    return { rank: "Hráč", rankPrefix: null, rankIcon: null };
+  }
 }
 
 async function getColumns() {
@@ -260,14 +326,19 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ ok: false, error: "Spatne jmeno nebo heslo." });
     }
 
+    const uuid = pick(user, ["uuid", "premiumUuid"]) || offlineUuid(user.realname || user.username);
+    const luckPerms = await getLuckPermsProfile(uuid);
+
     return res.json({
       ok: true,
-      message: "Prihlaseni probehlo.",
+      message: "Přihlášení proběhlo.",
       user: {
         username: user.realname || user.username,
         email: user.email || null,
-        uuid: pick(user, ["uuid", "premiumUuid"]) || offlineUuid(user.realname || user.username),
-        rank: "Hrac",
+        uuid,
+        rank: luckPerms.rank,
+        rankPrefix: luckPerms.rankPrefix,
+        rankIcon: luckPerms.rankIcon,
         gems: 0,
         shards: 0,
         fragments: 0,
