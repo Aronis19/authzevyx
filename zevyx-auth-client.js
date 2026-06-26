@@ -196,14 +196,14 @@ function field(name, label, type, placeholder, autocomplete) {
       ["První Přihlášení", formatDate(user.firstLogin)],
       ["Poslední Přihlášení", formatDate(user.lastLogin)],
       ["Odehraný Čas", user.playedTime || "-"],
-      ["Premium (Auto login)", user.premium ? "Zapnuto" : "Vypnuto"]
+      ["Premium (Auto login)", user.premium ? `Zapnuto <span class="premium-uuid">(${user.uuid})</span>` : "Vypnuto"]
     ];
 
     document.body.innerHTML = `
       <main class="bg-background min-h-svh text-foreground">
         <div class="border-b border-border px-5 py-4 text-sm text-muted-foreground">
           <span>Profil</span><span class="mx-2"> › </span><span class="font-semibold text-foreground">Informace</span>
-          <button type="button" data-logout class="float-right rounded-md border border-border px-3 py-1 text-xs hover:bg-muted">Odhlasit</button>
+          <button type="button" data-logout class="float-right rounded-md border border-border px-3 py-1 text-xs hover:bg-muted">Odhlásit</button>
         </div>
         <section class="p-5">
           <h1 class="mb-4 text-lg font-bold uppercase tracking-wide">Informace</h1>
@@ -213,7 +213,7 @@ function field(name, label, type, placeholder, autocomplete) {
                 ${rows.map(([a, b]) => `
                   <tr class="border-b border-border last:border-b-0">
                     <th class="w-1/2 border-r border-border px-4 py-3 text-left font-bold">${esc(a)}</th>
-                    <td class="px-4 py-3">${esc(b)}</td>
+                    <td class="px-4 py-3">${a === "Premium (Auto login)" ? b : esc(b)}</td>
                   </tr>
                 `).join("")}
               </tbody>
