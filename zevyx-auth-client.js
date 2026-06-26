@@ -331,10 +331,24 @@ function profile(user) {
       }
 
       .dash-nav-icon {
-        width: 14px;
-        color: var(--dash-muted);
-        text-align: center;
-      }
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dash-muted);
+}
+
+.dash-nav-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
       .dash-account-wrap {
         position: relative;
@@ -654,55 +668,52 @@ function profile(user) {
         </div>
 
         <nav class="dash-nav">
-          <div class="dash-nav-title">Profil</div>
+  <div class="dash-nav-title">Profil</div>
 
-          <button type="button" class="dash-nav-button active">
-            <span class="dash-nav-icon">◉</span>
-            Informace
-          </button>
+  <button type="button" class="dash-nav-button active">
+    <span class="dash-nav-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
+    </span>
+    Informace
+  </button>
 
-          <button type="button" class="dash-nav-button">
-            <span class="dash-nav-icon">✎</span>
-            Změna herního jména
-          </button>
+  <button type="button" class="dash-nav-button">
+    <span class="dash-nav-icon">
+      <svg viewBox="0 0 24 24"><path d="m4 20 4.2-1 10.7-10.7a2.1 2.1 0 0 0-3-3L5.2 16z"/><path d="m14.5 6.5 3 3"/></svg>
+    </span>
+    Změna herního jména
+  </button>
 
-          <button type="button" class="dash-nav-button">
-            <span class="dash-nav-icon">⌁</span>
-            Změna hesla
-          </button>
+  <button type="button" class="dash-nav-button">
+    <span class="dash-nav-icon">
+      <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    </span>
+    Změna hesla
+  </button>
 
-          <button type="button" class="dash-nav-button">
-            <span class="dash-nav-icon">▥</span>
-            Statistiky
-          </button>
+  <button type="button" class="dash-nav-button">
+    <span class="dash-nav-icon">
+      <svg viewBox="0 0 24 24"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-8"/><path d="M22 19V3"/></svg>
+    </span>
+    Statistiky
+  </button>
 
-          <button type="button" class="dash-nav-button">
-            <span class="dash-nav-icon">◈</span>
-            Vysvědčení
-          </button>
+  <div class="dash-nav-title" style="margin-top:18px">Podpora</div>
 
-          <button type="button" class="dash-nav-button">
-            <span class="dash-nav-icon">↗</span>
-            Moje transakce
-          </button>
+  <button type="button" class="dash-nav-button">
+    <span class="dash-nav-icon">
+      <svg viewBox="0 0 24 24"><path d="M5 4h14v12H9l-4 4z"/><path d="M8 8h8"/><path d="M8 12h5"/></svg>
+    </span>
+    Vytvořit ticket
+  </button>
 
-          <button type="button" class="dash-nav-button">
-            <span class="dash-nav-icon">◈</span>
-            Moje nákupy
-          </button>
-
-          <div class="dash-nav-title" style="margin-top:18px">Podpora</div>
-
-          <button type="button" class="dash-nav-button">
-            <span class="dash-nav-icon">☷</span>
-            Vytvořit ticket
-          </button>
-
-          <button type="button" class="dash-nav-button">
-            <span class="dash-nav-icon">☷</span>
-            Moje tickety
-          </button>
-        </nav>
+  <button type="button" class="dash-nav-button">
+    <span class="dash-nav-icon">
+      <svg viewBox="0 0 24 24"><path d="M5 4h14v12H9l-4 4z"/><path d="M8 8h8"/><path d="M8 12h8"/></svg>
+    </span>
+    Moje tickety
+  </button>
+</nav>
 
         <div class="dash-account-wrap" data-user-menu-wrap>
           <div class="dash-menu" data-user-menu hidden>
