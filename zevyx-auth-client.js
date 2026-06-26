@@ -215,7 +215,7 @@ function profile(user) {
   }
 
   const username = user.username || "Hráč";
-  const avatarUrl = `https://panel.mcrybar.cz/vzge/face/256/${encodeURIComponent(user.uuid || username)}`;
+  const avatarUrl = `https://visage.surgeplay.com/face/256/${encodeURIComponent(username)}`;
 
   const rows = [
     ["Herní Jméno", user.username || "-"],
