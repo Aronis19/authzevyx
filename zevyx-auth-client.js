@@ -485,7 +485,7 @@ function profile(user) {
   width: 50%;
   border-right: 1px solid var(--dash-border);
   text-align: left;
-  font-weight: 800;
+  font-weight: 500;
 }
 
 .dash-profile-table td {
