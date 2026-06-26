@@ -281,11 +281,13 @@ function profile(user) {
         font-weight: 800;
       }
 
-      .dash-brand img {
-        width: 22px;
-        height: 22px;
-        object-fit: contain;
-      }
+.dash-brand img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  object-position: left center;
+  filter: brightness(1.35) saturate(1.2);
+}
 
       .dash-nav {
         padding: 12px 8px;
