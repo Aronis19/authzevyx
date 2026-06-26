@@ -144,7 +144,6 @@ async function getLuckPermsProfile(uuid) {
     );
 
     const temporaryGroup = temporaryGroups[0];
-
     const group = temporaryGroup
       ? String(temporaryGroup.permission).slice("group.".length)
       : primaryGroup;
@@ -299,6 +298,7 @@ app.post("/api/refresh-profile", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
     return res.status(500).json({
       ok: false,
       error: "Nepodařilo se aktualizovat profil."
@@ -406,9 +406,9 @@ app.post("/api/login", async (req, res) => {
         email: user.email || null,
         uuid,
         rank: luckPerms.rank,
-rankExpiresAt: luckPerms.rankExpiresAt,
-rankPermanent: luckPerms.rankPermanent,
-rankPrefix: luckPerms.rankPrefix,
+        rankExpiresAt: luckPerms.rankExpiresAt,
+        rankPermanent: luckPerms.rankPermanent,
+        rankPrefix: luckPerms.rankPrefix,
         rankIcon: luckPerms.rankIcon,
         gems: 0,
         shards: 0,
