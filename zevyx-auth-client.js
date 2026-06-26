@@ -460,39 +460,30 @@ function profile(user) {
         background: var(--dash-panel);
       }
 
-      .dash-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 11px;
-      }
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
 
-      .dash-table th,
-      .dash-table td {
-        padding: 8px 10px;
-        border-bottom: 1px solid var(--dash-border);
-      }
+.dash-table th,
+.dash-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--dash-border);
+}
 
-      .dash-table tr:last-child th,
-      .dash-table tr:last-child td {
-        border-bottom: 0;
-      }
+.dash-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
 
-      .dash-table th {
-        width: 50%;
-        border-right: 1px solid var(--dash-border);
-        text-align: left;
-        font-weight: 800;
-      }
-
-      .dash-table td {
-        color: var(--dash-text);
-      }
-
-      .dash-section-title {
-        margin: 22px 0 10px;
-        font-size: 15px;
-        font-weight: 900;
-      }
+.dash-section-title {
+  margin: 22px 0 10px;
+  font-size: 20px;
+  font-weight: 900;
+}
 
       @media (max-width: 760px) {
         [data-zevyx-dashboard] {
