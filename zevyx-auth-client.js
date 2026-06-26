@@ -742,27 +742,6 @@ function profile(user) {
               <span>${esc(username)}</span>
             </div>
 
-<button type="button" class="dash-menu-button">
-  <span class="dash-menu-icon">
-    <svg viewBox="0 0 24 24">
-      <rect x="4" y="4" width="16" height="12" rx="2"/>
-      <path d="M8 20h8"/>
-      <path d="M12 16v4"/>
-    </svg>
-  </span>
-  Relace
-</button>
-
-<button type="button" class="dash-menu-button">
-  <span class="dash-menu-icon">
-    <svg viewBox="0 0 24 24">
-      <path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/>
-      <path d="m9 12 2 2 4-4"/>
-    </svg>
-  </span>
-  Zabezpečení
-</button>
-
 <button type="button" class="dash-menu-button" data-theme-toggle>
   <span class="dash-menu-icon">
     <svg viewBox="0 0 24 24">
