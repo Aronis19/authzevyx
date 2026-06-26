@@ -506,7 +506,7 @@ function profile(user) {
       .dash-title {
         margin: 0 0 12px;
         font-size: 14px;
-        font-weight: 900;
+        font-weight: 600;
         text-transform: uppercase;
       }
 
@@ -532,7 +532,7 @@ function profile(user) {
 .dash-title {
   margin: 0 0 12px;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
