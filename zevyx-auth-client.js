@@ -337,16 +337,37 @@ function boot() {
   q('[data-panel="login"]').innerHTML = card("login");
   q('[data-panel="register"]').innerHTML = card("register");
 
-  document.querySelectorAll("[data-password-toggle]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const input = document.getElementById(button.dataset.passwordToggle);
-      if (!input) return;
+document.querySelectorAll("[data-password-toggle]").forEach((button) => {
+  const eyeIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  `;
 
-      const visible = input.type === "text";
-      input.type = visible ? "password" : "text";
-      button.setAttribute("aria-label", visible ? "Zobrazit heslo" : "Skrýt heslo");
-    });
+  const eyeOffIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="m2 2 20 20"/>
+      <path d="M6.71 6.71C4.93 7.9 3.44 9.7 2.56 11.65a1 1 0 0 0 0 .7C4.07 15.77 7.72 18 12 18c1.34 0 2.62-.22 3.8-.63"/>
+      <path d="M10.73 5.08C11.15 5.03 11.57 5 12 5c4.85 0 8.99 3.03 10.5 7.3a1 1 0 0 1 0 .7c-.43 1.21-1.12 2.31-2 3.24"/>
+      <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"/>
+    </svg>
+  `;
+
+  button.addEventListener("click", () => {
+    const input = document.getElementById(button.dataset.passwordToggle);
+    if (!input) return;
+
+    const willShowPassword = input.type === "password";
+
+    input.type = willShowPassword ? "text" : "password";
+    button.innerHTML = willShowPassword ? eyeOffIcon : eyeIcon;
+    button.setAttribute(
+      "aria-label",
+      willShowPassword ? "Skrýt heslo" : "Zobrazit heslo"
+    );
   });
+});
 
   document.querySelectorAll("[data-tab]").forEach((tab) => {
     tab.addEventListener("click", () => setTab(tab.dataset.tab));
