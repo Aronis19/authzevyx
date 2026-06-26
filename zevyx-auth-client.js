@@ -401,18 +401,39 @@ function profile(user) {
         transition: transform .18s ease;
       }
 
-      .dash-menu {
-        position: absolute;
-        bottom: 68px;
-        left: 12px;
-        width: 224px;
-        overflow: hidden;
-        border: 1px solid var(--dash-border);
-        border-radius: 10px;
-        background: var(--dash-panel);
-        box-shadow: 0 16px 35px rgba(0, 0, 0, .35);
-        z-index: 20;
-      }
+.dash-menu {
+  position: absolute;
+  bottom: 68px;
+  left: 12px;
+  right: 12px;
+  width: auto;
+  overflow: hidden;
+  border: 1px solid var(--dash-border);
+  border-radius: 10px;
+  background: var(--dash-panel);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, .35);
+  z-index: 20;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(9px) scale(.985);
+  transform-origin: bottom left;
+  transition:
+    opacity .18s ease,
+    transform .22s cubic-bezier(.22, .61, .36, 1),
+    visibility 0s linear .22s;
+}
+
+.dash-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity .18s ease,
+    transform .22s cubic-bezier(.22, .61, .36, 1);
+}
 
       .dash-menu-head {
         display: flex;
@@ -608,7 +629,8 @@ function profile(user) {
   .dash-menu {
     bottom: 78px;
     left: 14px;
-    width: 250px;
+    right: 14px;
+    width: auto;
   }
 
   .dash-menu-head,
@@ -782,7 +804,7 @@ function profile(user) {
 </nav>
 
         <div class="dash-account-wrap" data-user-menu-wrap>
-          <div class="dash-menu" data-user-menu hidden>
+          <div class="dash-menu" data-user-menu>
             <div class="dash-menu-head">
               <img class="dash-avatar" src="${avatarUrl}" alt="">
               <span>${esc(username)}</span>
@@ -873,15 +895,20 @@ function profile(user) {
   const menu = q("[data-user-menu]");
   const menuWrap = q("[data-user-menu-wrap]");
 
-  toggle?.addEventListener("click", () => {
-    menu.hidden = !menu.hidden;
-  });
+const setMenuOpen = (open) => {
+  menu?.classList.toggle("is-open", open);
+  toggle?.setAttribute("aria-expanded", String(open));
+};
 
-  document.addEventListener("click", (event) => {
-    if (menuWrap && !menuWrap.contains(event.target)) {
-      menu.hidden = true;
-    }
-  });
+toggle?.addEventListener("click", () => {
+  setMenuOpen(!menu?.classList.contains("is-open"));
+});
+
+document.addEventListener("click", (event) => {
+  if (menuWrap && !menuWrap.contains(event.target)) {
+    setMenuOpen(false);
+  }
+});
 
 q("[data-theme-toggle]")?.addEventListener("click", () => {
   q("[data-top-loader]")?.classList.add("is-loading");
@@ -895,8 +922,12 @@ q("[data-theme-toggle]")?.addEventListener("click", () => {
     profile(user);
   }, 520);
 });
-}
 
+q("[data-logout]")?.addEventListener("click", () => {
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+});
+}
   function setTab(name) {
     document.querySelectorAll("[data-tab]").forEach((tab) => {
       const active = tab.dataset.tab === name;
