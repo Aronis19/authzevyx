@@ -141,7 +141,22 @@ function field(name, label, type, placeholder, autocomplete) {
     if (!res.ok || data.ok === false) throw new Error(data.error || "Něco se nepovedlo.");
     return data;
   }
+async function refreshSavedUser(user) {
+  if (!user?.uuid) return user;
 
+  try {
+    const data = await post("/api/refresh-profile", {
+      uuid: user.uuid
+    });
+
+    return {
+      ...user,
+      ...data.user
+    };
+  } catch {
+    return user;
+  }
+}
   function loadCaptcha() {
     if (window.hcaptcha) return Promise.resolve();
     return new Promise((resolve, reject) => {
@@ -999,13 +1014,36 @@ q("[data-logout]")?.addEventListener("click", () => {
       }
     });
   }
-
+  
 function boot() {
-  const savedUser = localStorage.getItem(STORAGE_KEY);
-  if (savedUser) {
-    if (q("[data-logout]")) return;
-    try { profile(JSON.parse(savedUser)); return; } catch { localStorage.removeItem(STORAGE_KEY); }
+const savedUser = localStorage.getItem(STORAGE_KEY);
+
+if (savedUser) {
+  if (q("[data-logout]")) return;
+
+  try {
+    const cachedUser = JSON.parse(savedUser);
+
+    profile(cachedUser);
+
+    refreshSavedUser(cachedUser).then((freshUser) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(freshUser));
+
+      const rankChanged =
+        freshUser.rank !== cachedUser.rank ||
+        freshUser.rankExpiresAt !== cachedUser.rankExpiresAt ||
+        freshUser.rankPermanent !== cachedUser.rankPermanent;
+
+      if (rankChanged) {
+        profile(freshUser);
+      }
+    });
+
+    return;
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
   }
+}
 
   document.body.innerHTML = shell();
   q('[data-panel="login"]').innerHTML = card("login");

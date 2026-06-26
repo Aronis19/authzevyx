@@ -274,6 +274,38 @@ app.get("/health", async (req, res) => {
   }
 });
 
+app.post("/api/refresh-profile", async (req, res) => {
+  try {
+    const uuid = String(req.body.uuid || "").trim();
+
+    if (!uuid) {
+      return res.status(400).json({
+        ok: false,
+        error: "Chybí UUID."
+      });
+    }
+
+    const luckPerms = await getLuckPermsProfile(uuid);
+
+    return res.json({
+      ok: true,
+      user: {
+        rank: luckPerms.rank,
+        rankExpiresAt: luckPerms.rankExpiresAt,
+        rankPermanent: luckPerms.rankPermanent,
+        rankPrefix: luckPerms.rankPrefix,
+        rankIcon: luckPerms.rankIcon
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      error: "Nepodařilo se aktualizovat profil."
+    });
+  }
+});
+
 app.post("/api/register", async (req, res) => {
   try {
     const username = cleanUsername(req.body.username || req.body.realname);
