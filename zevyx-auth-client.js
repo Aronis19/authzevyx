@@ -188,13 +188,11 @@ function field(name, label, type, placeholder, autocomplete) {
   function profile(user) {
     const rows = [
       ["Herni jmeno", user.username || "-"],
-      ["E-mailova adresa", user.email || "-"],
+      ["E-mailova adresa", user.email || "Funkce zatím vypnuta."],
       ["UUID", user.uuid || "-"],
       ["Hodnost", `${user.rank || user.rank || "Hráč"} (${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})`],
       ["IP Adresa", "********"],
-      ["Gemy", user.gems ?? 0],
-      ["Shardy", user.shards ?? 0],
-      ["Ulomky", user.fragments ?? 0],
+      ["ZevyxCoiny", user.coins ?? 0],
       ["Prvni prihlaseni", formatDate(user.firstLogin)],
       ["Posledni prihlaseni", formatDate(user.lastLogin)],
       ["Odehrany cas", user.playedTime || "-"],
