@@ -190,7 +190,7 @@ function field(name, label, type, placeholder, autocomplete) {
       ["Herní Jméno", user.username || "-"],
       ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
       ["UUID", user.uuid || "-"],
-      ["Hodnost", `${user.rank || user.rank || "Hráč"} (${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})`],
+      ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">(${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
       ["IP Adresa", "********"],
       ["ZevyxCoiny", user.coins ?? 0],
       ["První Přihlášení", formatDate(user.firstLogin)],
@@ -213,7 +213,7 @@ function field(name, label, type, placeholder, autocomplete) {
                 ${rows.map(([a, b]) => `
                   <tr class="border-b border-border last:border-b-0">
                     <th class="w-1/2 border-r border-border px-4 py-3 text-left font-bold">${esc(a)}</th>
-                    <td class="px-4 py-3">${(a === "Premium (Auto login)" || a === "Hodnost") ? b : esc(b)}</td>
+                    <td class="px-4 py-3">${["Premium (Auto login)", "Hodnost"].includes(a) ? b : esc(b)}</td>
                   </tr>
                 `).join("")}
               </tbody>
