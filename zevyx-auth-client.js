@@ -192,7 +192,9 @@ const RANK_ICONS = {
 
 function profile(user) {
   const rank = user.rank || "Hráč";
-  const rankIcon = RANK_ICONS[rank];
+  const rankIcon = "./ranks/majitel_rank.png";git add zevyx-auth-client.js
+git commit -m "v2"
+git push
 
   const rankPrefix = rankIcon
     ? `<img src="${rankIcon}" alt="" style="height:22px;width:auto;vertical-align:middle;margin-right:7px">`
