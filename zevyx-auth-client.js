@@ -190,7 +190,7 @@ function field(name, label, type, placeholder, autocomplete) {
       ["Herni jmeno", user.username || "-"],
       ["E-mailova adresa", user.email || "-"],
       ["UUID", user.uuid || "-"],
-      ["Hodnost", user.rank || "Hrac"],
+      ["Hodnost", `${user.rankPrefix || user.rank || "Hráč"} (${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})`],
       ["IP Adresa", "********"],
       ["Gemy", user.gems ?? 0],
       ["Shardy", user.shards ?? 0],
