@@ -190,13 +190,13 @@ function field(name, label, type, placeholder, autocomplete) {
       ["Herní Jméno", user.username || "-"],
       ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
       ["UUID", user.uuid || "-"],
-      ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">(${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
+      ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
       ["IP Adresa", "********"],
       ["ZevyxCoiny", user.coins ?? 0],
       ["První Přihlášení", formatDate(user.firstLogin)],
       ["Poslední Přihlášení", formatDate(user.lastLogin)],
       ["Odehraný Čas", user.playedTime || "-"],
-      ["Premium (Auto login)", user.premium ? `Zapnuto <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">(${esc(user.uuid)})</span>` : "Vypnuto"]
+      ["Premium (Auto login)", user.premium ? `Zapnuto <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${esc(user.uuid)})</span>` : "Vypnuto"]
     ];
 
     document.body.innerHTML = `
