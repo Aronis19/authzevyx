@@ -190,6 +190,84 @@ async function getColumns() {
   return new Set(rows.map((row) => row.Field));
 }
 
+
+function normalizeUuid(value) {
+  const raw = String(value || "").trim().toLowerCase().replaceAll("-", "");
+
+  if (!/^[0-9a-f]{32}$/.test(raw)) return null;
+
+  return `${raw.slice(0, 8)}-${raw.slice(8, 12)}-${raw.slice(12, 16)}-${raw.slice(16, 20)}-${raw.slice(20)}`;
+}
+
+let playtimeTableReady = null;
+
+function ensurePlaytimeTable() {
+  if (!playtimeTableReady) {
+    playtimeTableReady = pool.query(`
+      CREATE TABLE IF NOT EXISTS zevyx_panel_playtime (
+        uuid CHAR(36) NOT NULL PRIMARY KEY,
+        username VARCHAR(16) NOT NULL,
+        played_seconds BIGINT UNSIGNED NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `).catch((error) => {
+      playtimeTableReady = null;
+      throw error;
+    });
+  }
+
+  return playtimeTableReady;
+}
+
+function hasBridgeSecret(receivedSecret) {
+  const expectedSecret = String(process.env.PANEL_BRIDGE_SECRET || "");
+
+  if (!expectedSecret || !receivedSecret) return false;
+
+  const expected = Buffer.from(expectedSecret);
+  const received = Buffer.from(String(receivedSecret));
+
+  return expected.length === received.length &&
+    crypto.timingSafeEqual(expected, received);
+}
+
+function formatPlayedTime(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const days = Math.floor(total / 86400);
+  const hours = Math.floor((total % 86400) / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+
+  const parts = [];
+  if (days) parts.push(`${days} d`);
+  if (hours || days) parts.push(`${hours} h`);
+  parts.push(`${minutes} min`);
+
+  return parts.join(" ");
+}
+
+async function getSavedPlaytime(uuid) {
+  const normalizedUuid = normalizeUuid(uuid);
+  if (!normalizedUuid) return null;
+
+  try {
+    await ensurePlaytimeTable();
+
+    const [rows] = await pool.execute(
+      `SELECT played_seconds
+       FROM zevyx_panel_playtime
+       WHERE uuid = :uuid
+       LIMIT 1`,
+      { uuid: normalizedUuid }
+    );
+
+    return rows[0] ? formatPlayedTime(rows[0].played_seconds) : null;
+  } catch (error) {
+    console.error("Playtime read failed:", error);
+    return null;
+  }
+}
+
 function getClientIp(req) {
   return String(req.ip || req.headers["x-forwarded-for"] || "").split(",")[0].trim();
 }
@@ -284,7 +362,10 @@ app.post("/api/refresh-profile", async (req, res) => {
       });
     }
 
-    const luckPerms = await getLuckPermsProfile(uuid);
+    const [luckPerms, playedTime] = await Promise.all([
+      getLuckPermsProfile(uuid),
+      getSavedPlaytime(uuid)
+    ]);
 
     return res.json({
       ok: true,
@@ -293,7 +374,8 @@ app.post("/api/refresh-profile", async (req, res) => {
         rankExpiresAt: luckPerms.rankExpiresAt,
         rankPermanent: luckPerms.rankPermanent,
         rankPrefix: luckPerms.rankPrefix,
-        rankIcon: luckPerms.rankIcon
+        rankIcon: luckPerms.rankIcon,
+        playedTime
       }
     });
   } catch (error) {
@@ -302,6 +384,56 @@ app.post("/api/refresh-profile", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: "Nepodařilo se aktualizovat profil."
+    });
+  }
+});
+
+
+app.post("/api/minecraft-playtime", async (req, res) => {
+  try {
+    if (!hasBridgeSecret(req.get("X-Zevyx-Bridge-Key"))) {
+      return res.status(401).json({
+        ok: false,
+        error: "Neplatný bridge klíč."
+      });
+    }
+
+    const uuid = normalizeUuid(req.body.uuid);
+    const username = String(req.body.username || "").trim();
+    const playedTimeSeconds = Math.floor(Number(req.body.playedTimeSeconds));
+
+    if (
+      !uuid ||
+      !/^[A-Za-z0-9_]{3,16}$/.test(username) ||
+      !Number.isFinite(playedTimeSeconds) ||
+      playedTimeSeconds < 0
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: "Neplatná data z Minecraft serveru."
+      });
+    }
+
+    await ensurePlaytimeTable();
+
+    await pool.execute(
+      `INSERT INTO zevyx_panel_playtime
+        (uuid, username, played_seconds)
+       VALUES
+        (:uuid, :username, :playedTimeSeconds)
+       ON DUPLICATE KEY UPDATE
+        username = VALUES(username),
+        played_seconds = VALUES(played_seconds)`,
+      { uuid, username, playedTimeSeconds }
+    );
+
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("Minecraft playtime sync failed:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: "Nepodařilo se uložit odehraný čas."
     });
   }
 });
@@ -397,6 +529,7 @@ app.post("/api/login", async (req, res) => {
 
     const uuid = pick(user, ["uuid", "premiumUuid"]) || offlineUuid(user.realname || user.username);
     const luckPerms = await getLuckPermsProfile(uuid);
+    const playedTime = await getSavedPlaytime(uuid);
 
     return res.json({
       ok: true,
@@ -416,7 +549,7 @@ app.post("/api/login", async (req, res) => {
         ip: pick(user, ["lastip", "ip", "regip"]),
         firstLogin: normalizeMillis(user.regdate),
         lastLogin: normalizeMillis(user.lastlogin),
-        playedTime: null,
+        playedTime,
         premium: Boolean(user.hasSession || user.isLogged),
         premiumToken: user.hasSession ? String(user.hasSession) : null
       }
