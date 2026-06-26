@@ -196,7 +196,7 @@ function field(name, label, type, placeholder, autocomplete) {
       ["První Přihlášení", formatDate(user.firstLogin)],
       ["Poslední Přihlášení", formatDate(user.lastLogin)],
       ["Odehraný Čas", user.playedTime || "-"],
-      ["Premium (Auto login)", user.premium ? `Zapnuto <span style="font-size:10px !important;opacity:.6;font-family:monospace;vertical-align:middle">(${esc(user.uuid)})</span>` : "Vypnuto"]
+      ["Premium (Auto login)", user.premium ? `Zapnuto <span style="margin-left:6px;font-size:11px;font-weight:400;opacity:.8;color:#94a3b8;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">(${esc(user.uuid)})</span>` : "Vypnuto"]
     ];
 
     document.body.innerHTML = `
