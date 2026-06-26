@@ -185,90 +185,55 @@ function field(name, label, type, placeholder, autocomplete) {
     }).format(d);
   }
 
-const RANK_ICONS = {
-  "Hráč": "./ranks/hrac_rank.png",
-  "Majitel": "./ranks/majitel_rank.png"
-};
+  function profile(user) {
+    const rows = [
+      ["Herní Jméno", user.username || "-"],
+      ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
+      ["UUID", user.uuid || "-"],
+      ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
+      ["IP Adresa", "********"],
+      ["ZevyxCoiny", user.coins ?? 0],
+      ["První Přihlášení", formatDate(user.firstLogin)],
+      ["Poslední Přihlášení", formatDate(user.lastLogin)],
+      ["Odehraný Čas", user.playedTime || "-"],
+      ["Premium (Auto login)", user.premium ? `Zapnuto <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${esc(user.uuid)})</span>` : "Vypnuto"]
+    ];
 
-function profile(user) {
-  const rank = user.rank || "Hráč";
-  const rankIcon = "./ranks/majitel_rank.png";git add zevyx-auth-client.js
-git commit -m "v2"
-git push
-
-  const rankPrefix = rankIcon
-    ? `<img src="${rankIcon}" alt="" style="height:22px;width:auto;vertical-align:middle;margin-right:7px">`
-    : "";
-
-  const rows = [
-    ["Herní Jméno", user.username || "-"],
-    ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
-    ["UUID", user.uuid || "-"],
-
-    ["Hodnost", `${rankPrefix}${esc(rank)} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575">(${user.rankPermanent === false && user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
-
-    ["IP Adresa", "********"],
-    ["ZevyxCoiny", user.coins ?? 0],
-    ["První Přihlášení", formatDate(user.firstLogin)],
-    ["Poslední Přihlášení", formatDate(user.lastLogin)],
-    ["Odehraný Čas", user.playedTime || "-"],
-
-    ["Premium (Auto login)", user.premium ? `Zapnuto <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575">(${esc(user.uuid)})</span>` : "Vypnuto"]
-  ];
-
-  document.body.innerHTML = `
-    <main class="bg-background min-h-svh text-foreground">
-      <div class="border-b border-border px-5 py-4 text-sm text-muted-foreground">
-        <span>Profil</span><span class="mx-2"> › </span><span class="font-semibold text-foreground">Informace</span>
-        <button type="button" data-logout class="float-right rounded-md border border-border px-3 py-1 text-xs hover:bg-muted">Odhlásit</button>
-      </div>
-
-      <section class="p-5">
-        <h1 class="mb-4 text-lg font-bold uppercase tracking-wide">Informace</h1>
-
-        <div class="overflow-hidden rounded-lg border border-border bg-card">
-          <table class="w-full border-collapse text-sm">
-            <tbody>
-              ${rows.map(([a, b]) => `
-                <tr class="border-b border-border last:border-b-0">
-                  <th class="w-1/2 border-r border-border px-4 py-3 text-left font-bold">${esc(a)}</th>
-                  <td class="px-4 py-3">${["Premium (Auto login)", "Hodnost"].includes(a) ? b : esc(b)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
+    document.body.innerHTML = `
+      <main class="bg-background min-h-svh text-foreground">
+        <div class="border-b border-border px-5 py-4 text-sm text-muted-foreground">
+          <span>Profil</span><span class="mx-2"> › </span><span class="font-semibold text-foreground">Informace</span>
+          <button type="button" data-logout class="float-right rounded-md border border-border px-3 py-1 text-xs hover:bg-muted">Odhlásit</button>
         </div>
+        <section class="p-5">
+          <h1 class="mb-4 text-lg font-bold uppercase tracking-wide">Informace</h1>
+          <div class="overflow-hidden rounded-lg border border-border bg-card">
+            <table class="w-full border-collapse text-sm">
+              <tbody>
+                ${rows.map(([a, b]) => `
+                  <tr class="border-b border-border last:border-b-0">
+                    <th class="w-1/2 border-r border-border px-4 py-3 text-left font-bold">${esc(a)}</th>
+                    <td class="px-4 py-3">${["Premium (Auto login)", "Hodnost"].includes(a) ? b : esc(b)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+          <h2 class="mb-4 mt-8 text-xl font-bold">Staff čeká na tvou odpověď.</h2>
+          <div class="overflow-hidden rounded-lg border border-border bg-card">
+            <table class="w-full border-collapse text-sm">
+              <thead class="bg-muted/40 text-muted-foreground">
+                <tr><th class="px-4 py-3 text-left">Cislo</th><th class="px-4 py-3 text-left">Datum</th><th class="px-4 py-3 text-left">Typ</th><th class="px-4 py-3 text-left">Akce</th></tr>
+              </thead>
+              <tbody><tr><td class="px-4 py-6 text-muted-foreground" colspan="4">Zadne cekajici polozky.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    `;
+    q("[data-logout]")?.addEventListener("click", () => { localStorage.removeItem(STORAGE_KEY); location.reload(); });
+  }
 
-        <h2 class="mb-4 mt-8 text-xl font-bold">Staff čeká na tvou odpověď.</h2>
-
-        <div class="overflow-hidden rounded-lg border border-border bg-card">
-          <table class="w-full border-collapse text-sm">
-            <thead class="bg-muted/40 text-muted-foreground">
-              <tr>
-                <th class="px-4 py-3 text-left">Cislo</th>
-                <th class="px-4 py-3 text-left">Datum</th>
-                <th class="px-4 py-3 text-left">Typ</th>
-                <th class="px-4 py-3 text-left">Akce</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="px-4 py-6 text-muted-foreground" colspan="4">
-                  Zadne cekajici polozky.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-  `;
-
-  q("[data-logout]")?.addEventListener("click", () => {
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
-  });
-}
   function setTab(name) {
     document.querySelectorAll("[data-tab]").forEach((tab) => {
       const active = tab.dataset.tab === name;
