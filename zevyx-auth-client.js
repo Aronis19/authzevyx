@@ -202,7 +202,7 @@ function field(name, label, type, placeholder, autocomplete) {
     document.body.innerHTML = `
       <main class="bg-background min-h-svh text-foreground">
         <div class="border-b border-border px-5 py-4 text-sm text-muted-foreground">
-          <span>Profil</span><span class="mx-2">›</span><span class="font-semibold text-foreground">Informace</span>
+          <span>Profil</span><span class="mx-2"> › </span><span class="font-semibold text-foreground">Informace</span>
           <button type="button" data-logout class="float-right rounded-md border border-border px-3 py-1 text-xs hover:bg-muted">Odhlasit</button>
         </div>
         <section class="p-5">
