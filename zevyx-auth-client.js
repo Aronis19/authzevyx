@@ -215,7 +215,7 @@ function profile(user) {
   }
 
   const username = user.username || "Hráč";
-  const avatarUrl = `https://mc-heads.net/avatar/${encodeURIComponent(username)}/64`;
+  const avatarUrl = `https://mc-heads.net/avatar/${encodeURIComponent(user.uuid || username)}/64`;
 
   const rows = [
     ["Herní Jméno", user.username || "-"],
