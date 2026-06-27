@@ -1121,7 +1121,7 @@ html:not(.dark) .mobile-account-card strong {
     Vytvořit ticket
   </button>
 
-  <button type="button" class="dash-nav-button">
+  <button type="button" class="dash-nav-button" data-page-open="tickets">
     <span class="dash-nav-icon">
       <svg viewBox="0 0 24 24"><path d="M5 4h14v12H9l-4 4z"/><path d="M8 8h8"/><path d="M8 12h8"/></svg>
     </span>
@@ -1306,7 +1306,7 @@ html:not(.dark) .mobile-account-card strong {
     <button type="button" data-mobile-sheet-close>×</button>
   </div>
 
-  <button type="button" class="mobile-sheet-row">
+  <button type="button" class="mobile-sheet-row" data-page-open="tickets">
     <span>
       <svg viewBox="0 0 24 24">
         <path d="M5 4h14v12H9l-4 4z"/>
@@ -1317,7 +1317,7 @@ html:not(.dark) .mobile-account-card strong {
     Moje tickety
   </button>
 
-  <button type="button" class="mobile-sheet-row">
+  <button type="button" class="mobile-sheet-row" data-page-open="ticket-create">
     <span>
       <svg viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="8"/>
@@ -1595,6 +1595,120 @@ try {
 });
   }, 450);
 };
+
+const showTicketCreatePage = () => {
+  const loader = q("[data-top-loader]");
+
+  loader?.classList.add("is-loading");
+  closeMobileSheets();
+
+  window.setTimeout(() => {
+    document.body.dataset.zevyxPage = "ticket-create";
+
+    q(".dash-header").innerHTML = `
+      <span>Podpora</span>
+      <span style="margin:0 8px">›</span>
+      <strong style="color:var(--dash-text)">Vytvořit ticket</strong>
+    `;
+
+    q(".dash-content").innerHTML = `
+      <h1 class="dash-title">Vytvořit ticket</h1>
+
+      <form data-ticket-create-form style="display:flex;flex-direction:column;gap:14px;max-width:720px">
+        <label style="font-size:12px;font-weight:700">
+          Typ ticketu
+          <select
+            name="type"
+            style="width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--dash-border);border-radius:7px;background:var(--dash-panel);color:var(--dash-text);font:inherit;box-sizing:border-box"
+          >
+            <option value="general">Obecný dotaz</option>
+            <option value="bug">Nahlášení chyby</option>
+            <option value="payment">Platba nebo obchod</option>
+            <option value="appeal">Odvolání trestu</option>
+            <option value="other">Ostatní</option>
+          </select>
+        </label>
+
+        <label style="font-size:12px;font-weight:700">
+          Krátký název
+          <input
+            type="text"
+            name="subject"
+            maxlength="120"
+            placeholder="Např. Problém s koupeným rankem"
+            style="width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--dash-border);border-radius:7px;background:var(--dash-panel);color:var(--dash-text);font:inherit;box-sizing:border-box"
+          >
+        </label>
+
+        <label style="font-size:12px;font-weight:700">
+          Zpráva
+          <textarea
+            name="message"
+            rows="8"
+            maxlength="5000"
+            placeholder="Popiš co nejvíc podrobností…"
+            style="width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--dash-border);border-radius:7px;background:var(--dash-panel);color:var(--dash-text);font:inherit;box-sizing:border-box;resize:vertical"
+          ></textarea>
+        </label>
+
+        <div data-ticket-create-message style="font-size:13px"></div>
+
+        <button
+          type="submit"
+          style="width:100%;border:1px solid #ffffff;border-radius:10px;padding:12px 14px;background:#ffffff;color:#111827;font:inherit;font-weight:700;cursor:pointer"
+        >
+          Vytvořit ticket
+        </button>
+      </form>
+    `;
+
+    document.querySelectorAll(".dash-nav-button").forEach((button) => {
+      button.classList.toggle(
+        "active",
+        button.dataset.pageOpen === "ticket-create"
+      );
+    });
+
+    loader?.classList.remove("is-loading");
+
+    const form = q("[data-ticket-create-form]");
+    const messageBox = q("[data-ticket-create-message]", form);
+
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const submitButton = q('button[type="submit"]', form);
+      const type = q('[name="type"]', form).value;
+      const subject = q('[name="subject"]', form).value.trim();
+      const message = q('[name="message"]', form).value.trim();
+
+      submitButton.disabled = true;
+      submitButton.style.opacity = ".65";
+
+      try {
+        const data = await post("/api/tickets", {
+          type,
+          subject,
+          message
+        });
+
+        messageBox.textContent = `Ticket #${data.ticket.id} byl vytvořen.`;
+        messageBox.style.color = "#4ade80";
+        form.reset();
+      } catch (error) {
+        messageBox.textContent = error.message;
+        messageBox.style.color = "#f87171";
+      } finally {
+        submitButton.disabled = false;
+        submitButton.style.opacity = "";
+      }
+    });
+  }, 450);
+};
+
+document.querySelectorAll('[data-page-open="ticket-create"]').forEach((button) => {
+  button.addEventListener("click", showTicketCreatePage);
+});
 
 document.querySelectorAll('[data-page-open="password"]').forEach((button) => {
   button.addEventListener("click", showPasswordPage);
