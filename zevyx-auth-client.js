@@ -2156,7 +2156,7 @@ dropzone?.addEventListener("drop", (event) => {
         focus && `Zaměření: ${focus}`,
         players && `Hráči: ${players}`,
         rawMessage
-      ].filter(Boolean).join("\\n\\n");
+      ].filter(Boolean).join("\n\n");
 
       submitButton.disabled = true;
       submitButton.style.opacity = ".65";
@@ -2481,7 +2481,7 @@ const showTicketDetailPage = async (ticketId) => {
                       </div>
 
                       <div style="margin-top:5px;white-space:pre-wrap;line-height:1.5;font-size:14px">
-                        ${esc(message.message)}
+                        ${esc(message.message).replaceAll("\\n", "\n")}
                       </div>
                     </div>
                   </div>
@@ -2489,7 +2489,57 @@ const showTicketDetailPage = async (ticketId) => {
                 : `<div style="padding:18px 0;color:var(--dash-muted)">Zatím tu nejsou žádné zprávy.</div>`
             }
           </div>
-        </div>
+
+${ticket.status === "closed" ? `
+  <div style="margin-top:14px;color:var(--dash-muted);font-size:13px">
+    Tento ticket je zavřený.
+  </div>
+` : `
+  <form data-ticket-reply-form style="margin-top:14px">
+    <textarea
+      name="message"
+      maxlength="5000"
+      placeholder="Napiš odpověď..."
+      style="
+        width:100%;
+        min-height:90px;
+        resize:vertical;
+        box-sizing:border-box;
+        border:1px solid var(--dash-border);
+        border-radius:8px;
+        padding:10px 12px;
+        background:var(--dash-panel);
+        color:var(--dash-text);
+        font:inherit;
+        font-size:14px;
+      "
+    ></textarea>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:8px">
+      <button
+        type="submit"
+        style="
+          border:1px solid #ffffff;
+          border-radius:8px;
+          padding:9px 13px;
+          background:#ffffff;
+          color:#111827;
+          font:inherit;
+          font-size:13px;
+          font-weight:600;
+          cursor:pointer;
+        "
+      >
+        Odeslat zprávu
+      </button>
+    </div>
+
+    <div data-ticket-reply-message style="margin-top:8px;font-size:13px"></div>
+  </form>
+`}
+
+
+</div>
 
         <aside class="dash-card" style="padding:16px">
           <strong style="font-size:14px">Účastníci</strong>
@@ -2526,6 +2576,31 @@ const showTicketDetailPage = async (ticketId) => {
     `;
 
     q("[data-ticket-back]")?.addEventListener("click", showTicketsPage);
+    const replyForm = q("[data-ticket-reply-form]");
+
+replyForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const input = q('[name="message"]', replyForm);
+  const notice = q("[data-ticket-reply-message]", replyForm);
+  const button = q('button[type="submit"]', replyForm);
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  button.disabled = true;
+  button.style.opacity = ".65";
+
+  try {
+    await post(`/api/tickets/${ticketId}/messages`, { message });
+    showTicketDetailPage(ticketId);
+  } catch (error) {
+    notice.textContent = error.message;
+    notice.style.color = "#f87171";
+    button.disabled = false;
+    button.style.opacity = "";
+  }
+});
   } catch (error) {
     q(".dash-content").innerHTML = `
       <h1 class="dash-title">Ticket #${ticketId}</h1>
