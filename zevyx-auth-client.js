@@ -709,6 +709,57 @@ function profile(user) {
 }
 
 @media (max-width: 760px) {
+.mobile-sheet.is-open {
+  transform: translateY(0);
+}
+
+.mobile-sheet-backdrop {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  transition: opacity .22s ease, visibility 0s linear .22s;
+}
+
+.mobile-sheet-backdrop.is-open {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity .22s ease;
+}
+
+.mobile-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 2px 14px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.mobile-sheet-head button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dash-muted);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.mobile-bottom-nav button small {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.mobile-bottom-nav button.is-active {
+  color: var(--dash-text);
+}
   [data-zevyx-dashboard] {
     grid-template-columns: 1fr;
   }
@@ -730,134 +781,135 @@ function profile(user) {
     font-size: 10px;
   }
 
-  .mobile-bottom-nav {
-    position: fixed;
-    z-index: 80;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    height: 72px;
-    border-top: 1px solid var(--dash-border);
-    background: rgba(10, 10, 12, .96);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-  }
+.mobile-bottom-nav {
+  position: fixed;
+  z-index: 80;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  height: 72px;
+  border-top: 1px solid var(--dash-border);
+  background: rgba(10, 10, 12, .96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
 
-  .mobile-bottom-nav button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    border: 0;
-    background: transparent;
-    color: var(--dash-muted);
-    font: inherit;
-    cursor: pointer;
-    transition: color .18s ease, transform .18s ease;
-  }
+.mobile-sheet {
+  position: fixed;
+  z-index: 100;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: block;
+  max-height: 82svh;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  background: var(--dash-bg);
+  box-shadow: 0 -18px 40px rgba(0, 0, 0, .45);
+  transform: translateY(110%);
+  transition: transform .28s cubic-bezier(.22, .61, .36, 1);
+}
 
-  .mobile-bottom-nav button:active {
-    transform: scale(.98);
-  }
+.mobile-sheet-row,
+.mobile-account-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 58px;
+  margin-bottom: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--dash-border);
+  border-radius: 14px;
+  background: var(--dash-panel);
+  color: var(--dash-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  box-sizing: border-box;
+}
 
-  .mobile-bottom-nav button span {
-    font-size: 22px;
-    line-height: 1;
-  }
+.mobile-bottom-nav svg,
+.mobile-sheet-row svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
-  .mobile-bottom-nav button small {
-    font-size: 10px;
-    font-weight: 600;
-  }
+.mobile-bottom-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--dash-muted);
+  font: inherit;
+  cursor: pointer;
+  transition: color .18s ease, transform .18s ease;
+}
 
-  .mobile-bottom-nav button.is-active {
-    color: var(--dash-text);
-  }
+.mobile-sheet-row span {
+  width: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dash-muted);
+  flex: 0 0 22px;
+}
 
-  .mobile-sheet-backdrop {
-    position: fixed;
-    z-index: 90;
-    inset: 0;
-    display: block;
-    visibility: hidden;
-    opacity: 0;
-    background: rgba(0, 0, 0, .72);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    transition: opacity .22s ease, visibility 0s linear .22s;
-  }
+html:not(.dark) .mobile-bottom-nav {
+  background: rgba(255, 255, 255, .92);
+}
 
-  .mobile-sheet-backdrop.is-open {
-    visibility: visible;
-    opacity: 1;
-    transition: opacity .22s ease;
-  }
+html:not(.dark) .mobile-sheet {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, .08);
+}
 
-  .mobile-sheet {
-    position: fixed;
-    z-index: 100;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: block;
-    max-height: 82svh;
-    overflow-y: auto;
-    padding: 10px;
-    border: 1px solid rgba(255,255,255,.08);
-    border-bottom: 0;
-    border-radius: 18px 18px 0 0;
-    background: #09090b;
-    box-shadow: 0 -18px 40px rgba(0, 0, 0, .45);
-    transform: translateY(110%);
-    transition: transform .28s cubic-bezier(.22, .61, .36, 1);
-  }
+html:not(.dark) .mobile-sheet-row,
+html:not(.dark) .mobile-account-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, .08);
+  color: #111827;
+}
 
-  .mobile-sheet.is-open {
-    transform: translateY(0);
-  }
+html:not(.dark) .mobile-sheet-head {
+  color: #111827;
+}
 
-  .mobile-sheet-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 2px 14px;
-    font-size: 16px;
-    font-weight: 800;
-  }
+html:not(.dark) .mobile-sheet-head button {
+  color: #6b7280;
+}
 
-  .mobile-sheet-head button {
-    width: 30px;
-    height: 30px;
-    border: 0;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--dash-muted);
-    font-size: 24px;
-    cursor: pointer;
-  }
+html:not(.dark) .mobile-bottom-nav button {
+  color: #6b7280;
+}
 
-  .mobile-sheet-row,
-  .mobile-account-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    min-height: 58px;
-    margin-bottom: 10px;
-    padding: 0 14px;
-    border: 1px solid var(--dash-border);
-    border-radius: 14px;
-    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-    color: var(--dash-text);
-    font: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: left;
-    box-sizing: border-box;
-  }
+html:not(.dark) .mobile-bottom-nav button.is-active {
+  color: #111827;
+}
+
+html:not(.dark) .mobile-sheet-row span,
+html:not(.dark) .mobile-sheet-row svg {
+  color: #6b7280;
+}
+
+html:not(.dark) .mobile-account-card strong {
+  color: #111827;
+}
 
   .mobile-sheet-row {
     cursor: pointer;
@@ -1095,22 +1147,38 @@ function profile(user) {
       </div>
     </main>
 
-    <nav class="mobile-bottom-nav" aria-label="Mobilní navigace">
-      <button type="button" class="is-active" data-mobile-sheet-open="profile">
-        <span>♙</span>
-        <small>Profil</small>
-      </button>
+<nav class="mobile-bottom-nav" aria-label="Mobilní navigace">
+  <button type="button" class="is-active" data-mobile-sheet-open="profile">
+    <span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z"/>
+        <path d="M4 20a8 8 0 0 1 16 0"/>
+      </svg>
+    </span>
+    <small>Profil</small>
+  </button>
 
-      <button type="button" data-mobile-sheet-open="support">
-        <span>♧</span>
-        <small>Podpora</small>
-      </button>
+  <button type="button" data-mobile-sheet-open="support">
+    <span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M4 12h16"/>
+        <path d="M4 6h16"/>
+        <path d="M4 18h10"/>
+      </svg>
+    </span>
+    <small>Podpora</small>
+  </button>
 
-      <button type="button" data-mobile-sheet-open="account">
-        <span>◎</span>
-        <small>Účet</small>
-      </button>
-    </nav>
+  <button type="button" data-mobile-sheet-open="account">
+    <span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20a8 8 0 0 1 16 0"/>
+      </svg>
+    </span>
+    <small>Účet</small>
+  </button>
+</nav>
 
     <div class="mobile-sheet-backdrop" data-mobile-sheet-backdrop></div>
 
