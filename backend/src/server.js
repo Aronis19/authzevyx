@@ -59,6 +59,86 @@ const ticketUpload = multer({
   }
 });
 
+const ticketFileTypes = new Map([
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"],
+  ["image/gif", "gif"],
+  ["application/pdf", "pdf"]
+]);
+
+function validateTicketFiles(files) {
+  const list = Array.isArray(files) ? files : [];
+
+  for (const file of list) {
+    if (!ticketFileTypes.has(file.mimetype)) {
+      throw new Error("Povolené jsou obrázky JPG, PNG, WEBP, GIF a PDF.");
+    }
+
+    if (!Buffer.isBuffer(file.buffer) || file.buffer.length === 0) {
+      throw new Error("Jeden z přiložených souborů je prázdný.");
+    }
+  }
+
+  return list;
+}
+
+function makeTicketStoragePath(ticketId, messageId, file) {
+  const extension = ticketFileTypes.get(file.mimetype);
+
+  return `tickets/${ticketId}/${messageId}/${crypto.randomUUID()}.${extension}`;
+}
+
+async function storeTicketFiles({ ticketId, messageId, files, connection }) {
+  if (!files.length) return;
+
+  const bucket = String(process.env.SUPABASE_BUCKET || "").trim();
+
+  if (!supabase || !bucket) {
+    throw new Error("Ukládání příloh není nastavené.");
+  }
+
+  const savedPaths = [];
+
+  try {
+    for (const file of files) {
+      const storagePath = makeTicketStoragePath(ticketId, messageId, file);
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(storagePath, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      savedPaths.push(storagePath);
+
+      await connection.execute(
+        `INSERT INTO zevyx_panel_ticket_attachments
+          (ticket_id, message_id, storage_path, original_name, content_type, size_bytes)
+         VALUES
+          (:ticketId, :messageId, :storagePath, :originalName, :contentType, :sizeBytes)`,
+        {
+          ticketId,
+          messageId,
+          storagePath,
+          originalName: String(file.originalname || "soubor").slice(0, 255),
+          contentType: file.mimetype,
+          sizeBytes: file.size
+        }
+      );
+    }
+  } catch (error) {
+    if (savedPaths.length) {
+      await supabase.storage.from(bucket).remove(savedPaths).catch(() => {});
+    }
+
+    throw error;
+  }
+}
+
 app.disable("x-powered-by");
 app.set("trust proxy", true);
 app.use(express.json({ limit: "32kb" }));
@@ -539,7 +619,7 @@ function ensureTicketTables() {
   return ticketTablesReady;
 }
 
-app.post("/api/tickets", async (req, res) => {
+app.post("/api/tickets", ticketUpload.array("files", 5), async (req, res) => {
   let connection;
 
   try {
@@ -552,9 +632,10 @@ app.post("/api/tickets", async (req, res) => {
       });
     }
 
-    const type = String(req.body.type || "").trim().toLowerCase();
-    const subject = String(req.body.subject || "").trim();
-    const message = String(req.body.message || "").trim();
+const type = String(req.body.type || "").trim().toLowerCase();
+const subject = String(req.body.subject || "").trim();
+const message = String(req.body.message || "").trim();
+const files = validateTicketFiles(req.files);
 
     if (!["general", "bug", "payment", "appeal", "other"].includes(type)) {
       return res.status(400).json({
