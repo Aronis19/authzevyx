@@ -676,18 +676,25 @@ const files = validateTicketFiles(req.files);
       }
     );
 
-    await connection.execute(
-      `INSERT INTO zevyx_panel_ticket_messages
-        (ticket_id, author_uuid, author_username, author_role, message)
-       VALUES
-        (:ticketId, :authorUuid, :authorUsername, 'player', :message)`,
-      {
-        ticketId: ticketResult.insertId,
-        authorUuid: actor.uuid,
-        authorUsername: actor.username,
-        message
-      }
-    );
+const [messageResult] = await connection.execute(
+  `INSERT INTO zevyx_panel_ticket_messages
+    (ticket_id, author_uuid, author_username, author_role, message)
+   VALUES
+    (:ticketId, :authorUuid, :authorUsername, 'player', :message)`,
+  {
+    ticketId: ticketResult.insertId,
+    authorUuid: actor.uuid,
+    authorUsername: actor.username,
+    message
+  }
+);
+
+await storeTicketFiles({
+  ticketId: ticketResult.insertId,
+  messageId: messageResult.insertId,
+  files,
+  connection
+});
 
     await connection.commit();
 
