@@ -146,7 +146,34 @@ async function post(path, body) {
   });
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.ok === false) throw new Error(data.error || "Něco se nepovedlo.");
+
+  if (!res.ok || data.ok === false) {
+    throw new Error(data.error || "Něco se nepovedlo.");
+  }
+
+  return data;
+}
+
+async function postForm(path, formData) {
+  const savedUser = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  const headers = {};
+
+  if (savedUser.sessionToken) {
+    headers.Authorization = `Bearer ${savedUser.sessionToken}`;
+  }
+
+  const res = await fetch(API_BASE + path, {
+    method: "POST",
+    headers,
+    body: formData
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok || data.ok === false) {
+    throw new Error(data.error || "Něco se nepovedlo.");
+  }
+
   return data;
 }
 
