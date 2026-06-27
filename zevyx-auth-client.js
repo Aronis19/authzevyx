@@ -1182,63 +1182,123 @@ html:not(.dark) .mobile-account-card strong {
 
     <div class="mobile-sheet-backdrop" data-mobile-sheet-backdrop></div>
 
-    <section class="mobile-sheet" data-mobile-sheet="profile">
-      <div class="mobile-sheet-head">
-        <strong>Profil</strong>
-        <button type="button" data-mobile-sheet-close>×</button>
-      </div>
+<section class="mobile-sheet" data-mobile-sheet="profile">
+  <div class="mobile-sheet-head">
+    <strong>Profil</strong>
+    <button type="button" data-mobile-sheet-close>×</button>
+  </div>
 
-      <button type="button" class="mobile-sheet-row" data-mobile-sheet-close>
-        <span>♙</span> Informace
-      </button>
+  <button type="button" class="mobile-sheet-row" data-mobile-sheet-close>
+    <span>
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20a8 8 0 0 1 16 0"/>
+      </svg>
+    </span>
+    Informace
+  </button>
 
-      <button type="button" class="mobile-sheet-row">
-        <span>✎</span> Změna herního jména
-      </button>
+  <button type="button" class="mobile-sheet-row">
+    <span>
+      <svg viewBox="0 0 24 24">
+        <path d="m4 20 4.2-1 10.7-10.7a2.1 2.1 0 0 0-3-3L5.2 16z"/>
+        <path d="m14.5 6.5 3 3"/>
+      </svg>
+    </span>
+    Změna herního jména
+  </button>
 
-      <button type="button" class="mobile-sheet-row">
-        <span>⚿</span> Změna hesla
-      </button>
+  <button type="button" class="mobile-sheet-row">
+    <span>
+      <svg viewBox="0 0 24 24">
+        <rect x="5" y="10" width="14" height="10" rx="2"/>
+        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+      </svg>
+    </span>
+    Změna hesla
+  </button>
 
-      <button type="button" class="mobile-sheet-row">
-        <span>▥</span> Statistiky
-      </button>
-    </section>
+  <button type="button" class="mobile-sheet-row">
+    <span>
+      <svg viewBox="0 0 24 24">
+        <path d="M4 19V9"/>
+        <path d="M10 19V5"/>
+        <path d="M16 19v-8"/>
+        <path d="M22 19V3"/>
+      </svg>
+    </span>
+    Statistiky
+  </button>
+</section>
 
-    <section class="mobile-sheet" data-mobile-sheet="support">
-      <div class="mobile-sheet-head">
-        <strong>Podpora</strong>
-        <button type="button" data-mobile-sheet-close>×</button>
-      </div>
+<section class="mobile-sheet" data-mobile-sheet="support">
+  <div class="mobile-sheet-head">
+    <strong>Podpora</strong>
+    <button type="button" data-mobile-sheet-close>×</button>
+  </div>
 
-      <button type="button" class="mobile-sheet-row">
-        <span>♧</span> Moje tickety
-      </button>
+  <button type="button" class="mobile-sheet-row">
+    <span>
+      <svg viewBox="0 0 24 24">
+        <path d="M5 4h14v12H9l-4 4z"/>
+        <path d="M8 8h8"/>
+        <path d="M8 12h5"/>
+      </svg>
+    </span>
+    Moje tickety
+  </button>
 
-      <button type="button" class="mobile-sheet-row">
-        <span>＋</span> Vytvořit ticket
-      </button>
-    </section>
+  <button type="button" class="mobile-sheet-row">
+    <span>
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8"/>
+        <path d="M12 8v8"/>
+        <path d="M8 12h8"/>
+      </svg>
+    </span>
+    Vytvořit ticket
+  </button>
+</section>
 
-    <section class="mobile-sheet" data-mobile-sheet="account">
-      <div class="mobile-sheet-head">
-        <strong>Účet</strong>
-        <button type="button" data-mobile-sheet-close>×</button>
-      </div>
+<section class="mobile-sheet" data-mobile-sheet="account">
+  <div class="mobile-sheet-head">
+    <strong>Účet</strong>
+    <button type="button" data-mobile-sheet-close>×</button>
+  </div>
 
-      <div class="mobile-account-card">
-        <img class="dash-avatar" src="${avatarUrl}" alt="">
-        <strong>${esc(username)}</strong>
-      </div>
+  <div class="mobile-account-card">
+    <img class="dash-avatar" src="${avatarUrl}" alt="">
+    <strong>${esc(username)}</strong>
+  </div>
 
-      <button type="button" class="mobile-sheet-row" data-mobile-theme-toggle>
-        <span>☼</span> Přepnout motiv
-      </button>
+  <button type="button" class="mobile-sheet-row" data-mobile-theme-toggle>
+    <span>
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2"/>
+        <path d="M12 20v2"/>
+        <path d="M4.93 4.93l1.41 1.41"/>
+        <path d="M17.66 17.66l1.41 1.41"/>
+        <path d="M2 12h2"/>
+        <path d="M20 12h2"/>
+        <path d="M4.93 19.07l1.41-1.41"/>
+        <path d="M17.66 6.34l1.41-1.41"/>
+      </svg>
+    </span>
+    Přepnout motiv
+  </button>
 
-      <button type="button" class="mobile-sheet-row mobile-logout" data-mobile-logout>
-        <span>⇥</span> Odhlásit se
-      </button>
-    </section>
+  <button type="button" class="mobile-sheet-row mobile-logout" data-mobile-logout>
+    <span>
+      <svg viewBox="0 0 24 24">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <path d="M16 17l5-5-5-5"/>
+        <path d="M21 12H9"/>
+      </svg>
+    </span>
+    Odhlásit se
+  </button>
+</section>
   `;
 
   const toggle = q("[data-user-menu-toggle]");
