@@ -889,7 +889,8 @@ html:not(.dark) .mobile-sheet {
 html:not(.dark) .mobile-sheet-row,
 html:not(.dark) .mobile-account-card {
   background: #ffffff;
-  border-color: rgba(0, 0, 0, .08);
+  border-color: #d9d9de;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .03);
   color: #111827;
 }
 
@@ -927,10 +928,17 @@ html:not(.dark) .mobile-account-card strong {
     transform: scale(.99);
   }
 
-  .mobile-sheet-row:hover {
-    background: rgba(255,255,255,.04);
-    border-color: rgba(255,255,255,.12);
+@media (hover: hover) {
+  html.dark .mobile-sheet-row:not(.mobile-logout):hover {
+    background: #222225;
+    border-color: #414146;
   }
+
+  html:not(.dark) .mobile-sheet-row:not(.mobile-logout):hover {
+    background: #eeeeF0;
+    border-color: #c7c7ce;
+  }
+}
 
   .mobile-sheet-row span {
     width: 22px;
