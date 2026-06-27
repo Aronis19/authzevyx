@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import mysql from "mysql2/promise";
+import { createClient } from "@supabase/supabase-js";
+import multer from "multer";
 
 dotenv.config();
 
@@ -35,6 +37,27 @@ const lpPool = process.env.LP_DB_NAME ? mysql.createPool({
   connectionLimit: 3,
   namedPlaceholders: true
 }) : null;
+
+const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY
+  ? createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
+      }
+    )
+  : null;
+
+const ticketUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    files: 5,
+    fileSize: 10 * 1024 * 1024
+  }
+});
 
 app.disable("x-powered-by");
 app.set("trust proxy", true);
@@ -490,6 +513,21 @@ function ensureTicketTables() {
           message TEXT NOT NULL,
           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
           INDEX zevyx_ticket_messages_ticket (ticket_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      `),
+
+      pool.query(`
+        CREATE TABLE IF NOT EXISTS zevyx_panel_ticket_attachments (
+          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          ticket_id BIGINT UNSIGNED NOT NULL,
+          message_id BIGINT UNSIGNED NULL,
+          storage_path VARCHAR(512) NOT NULL,
+          original_name VARCHAR(255) NOT NULL,
+          content_type VARCHAR(160) NOT NULL,
+          size_bytes INT UNSIGNED NOT NULL,
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          INDEX zevyx_ticket_attachments_ticket (ticket_id),
+          INDEX zevyx_ticket_attachments_message (message_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
       `)
     ]).catch((error) => {
