@@ -1710,6 +1710,89 @@ document.querySelectorAll('[data-page-open="ticket-create"]').forEach((button) =
   button.addEventListener("click", showTicketCreatePage);
 });
 
+const showTicketsPage = async () => {
+  const loader = q("[data-top-loader]");
+
+  loader?.classList.add("is-loading");
+  closeMobileSheets();
+
+  document.body.dataset.zevyxPage = "tickets";
+
+  q(".dash-header").innerHTML = `
+    <span>Podpora</span>
+    <span style="margin:0 8px">›</span>
+    <strong style="color:var(--dash-text)">Moje tickety</strong>
+  `;
+
+  q(".dash-content").innerHTML = `
+    <h1 class="dash-title">Moje tickety</h1>
+    <div class="dash-card" style="padding:18px;color:var(--dash-muted)">
+      Načítám tickety…
+    </div>
+  `;
+
+  document.querySelectorAll(".dash-nav-button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.pageOpen === "tickets");
+  });
+
+  try {
+    const data = await get("/api/tickets");
+    const tickets = Array.isArray(data.tickets) ? data.tickets : [];
+
+    q(".dash-content").innerHTML = `
+      <h1 class="dash-title">Moje tickety</h1>
+
+      <div class="dash-card">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Název</th>
+              <th>Typ</th>
+              <th>Stav</th>
+              <th>Datum</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              tickets.length
+                ? tickets.map((ticket) => `
+                    <tr>
+                      <td>#${ticket.id}</td>
+                      <td>${esc(ticket.subject)}</td>
+                      <td>${esc(ticket.type)}</td>
+                      <td>${ticket.status === "closed" ? "Zavřený" : "Otevřený"}</td>
+                      <td>${formatDate(ticket.created_at)}</td>
+                    </tr>
+                  `).join("")
+                : `
+                    <tr>
+                      <td colspan="5" style="color:var(--dash-muted);padding:18px 16px">
+                        Zatím nemáš žádné tickety.
+                      </td>
+                    </tr>
+                  `
+            }
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (error) {
+    q(".dash-content").innerHTML = `
+      <h1 class="dash-title">Moje tickety</h1>
+      <div class="dash-card" style="padding:18px;color:#f87171">
+        ${esc(error.message)}
+      </div>
+    `;
+  } finally {
+    loader?.classList.remove("is-loading");
+  }
+};
+
+document.querySelectorAll('[data-page-open="tickets"]').forEach((button) => {
+  button.addEventListener("click", showTicketsPage);
+});
+
 document.querySelectorAll('[data-page-open="password"]').forEach((button) => {
   button.addEventListener("click", showPasswordPage);
 });
