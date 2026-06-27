@@ -784,9 +784,26 @@ html.dark .mobile-account-card {
     padding: 24px 18px 96px;
   }
 
-  .dash-table {
-    font-size: 10px;
-  }
+.dash-table {
+  font-size: 15px;
+}
+
+.dash-table th,
+.dash-table td {
+  padding: 11px 16px;
+}
+
+.dash-header {
+  font-size: 14px;
+}
+
+.dash-title {
+  font-size: 18px;
+}
+
+.dash-section-title {
+  font-size: 21px;
+}
 
 .mobile-bottom-nav {
   position: fixed;
