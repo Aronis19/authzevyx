@@ -1899,6 +1899,23 @@ const makeTicketCustomSelect = (select) => {
     check.style.opacity = "0";
 
     item.append(text, check);
+    item.style.transition = "background .15s ease, transform .15s ease";
+
+item.addEventListener("mouseenter", () => {
+  if (Number(item.dataset.selectIndex) !== select.selectedIndex) {
+    item.style.background = "var(--dash-panel-hover)";
+  }
+
+  item.style.transform = "translateX(2px)";
+});
+
+item.addEventListener("mouseleave", () => {
+  if (Number(item.dataset.selectIndex) !== select.selectedIndex) {
+    item.style.background = "transparent";
+  }
+
+  item.style.transform = "";
+});
 
     item.addEventListener("click", () => {
       select.selectedIndex = index;
