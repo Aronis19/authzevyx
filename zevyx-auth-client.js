@@ -1398,8 +1398,15 @@ document.querySelectorAll('[data-page-open="username"]').forEach((button) => {
 
 document.querySelectorAll('[data-page-open="info"]').forEach((button) => {
   button.addEventListener("click", () => {
-    document.body.dataset.zevyxPage = "info";
-    profile(user);
+    const loader = q("[data-top-loader]");
+
+    loader?.classList.add("is-loading");
+    closeMobileSheets();
+
+    window.setTimeout(() => {
+      document.body.dataset.zevyxPage = "info";
+      profile(user);
+    }, 450);
   });
 });
 
