@@ -938,6 +938,16 @@ html:not(.dark) .mobile-account-card strong {
     background: #eeeeF0;
     border-color: #c7c7ce;
   }
+
+  html.dark .mobile-sheet-row.mobile-logout:hover {
+    background: rgba(153, 27, 27, .42);
+    border-color: rgba(248, 113, 113, .55);
+  }
+
+  html:not(.dark) .mobile-sheet-row.mobile-logout:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+  }
 }
 
   .mobile-sheet-row span {
