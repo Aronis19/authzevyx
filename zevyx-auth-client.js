@@ -1408,25 +1408,7 @@ const showPasswordPage = () => {
     `;
 
     q(".dash-content").innerHTML = `
-<h1 class="dash-title" style="display:flex;align-items:center;gap:8px">
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <circle cx="7.5" cy="15.5" r="5.5"/>
-    <path d="m21 2-9.6 9.6"/>
-    <path d="m15.5 7.5 1.9 1.9"/>
-    <path d="m18.5 4.5 1.9 1.9"/>
-  </svg>
-  ZMĚNA HESLA
-</h1>
+<h1 class="dash-title">ZMĚNA HESLA</h1>
 
       <form data-change-password-form style="display:flex;flex-direction:column;gap:12px">
         <label style="font-size:12px;font-weight:700">
@@ -1464,12 +1446,41 @@ const showPasswordPage = () => {
 
         <div data-password-message></div>
 
-        <button
-          type="submit"
-          style="width:100%;border:0;border-radius:7px;padding:11px 14px;background:var(--dash-text);color:var(--dash-bg);font:inherit;font-weight:700;cursor:pointer"
-        >
-          🔑 Změnit heslo
-        </button>
+<button
+  type="submit"
+  style="
+    width:100%;
+    border:1px solid var(--dash-border);
+    border-radius:10px;
+    padding:12px 14px;
+    background:var(--dash-panel);
+    color:var(--dash-text);
+    font:inherit;
+    font-weight:700;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    box-sizing:border-box;
+  "
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
+    <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+  </svg>
+  <span>Změnit heslo</span>
+</button>
       </form>
     `;
 
