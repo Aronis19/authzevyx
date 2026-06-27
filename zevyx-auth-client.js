@@ -1986,6 +1986,8 @@ const showTicketsPage = async () => {
     white-space:nowrap;
   }
 
+
+  
   @media (max-width:760px) {
     [data-ticket-list] .dash-table {
       min-width:760px;
