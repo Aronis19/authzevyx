@@ -351,6 +351,567 @@ app.get("/health", async (req, res) => {
   }
 });
 
+let panelSessionTableReady = null;
+
+function ensurePanelSessionTable() {
+  if (!panelSessionTableReady) {
+    panelSessionTableReady = pool.query(`
+      CREATE TABLE IF NOT EXISTS zevyx_panel_sessions (
+        token_hash CHAR(64) NOT NULL PRIMARY KEY,
+        uuid CHAR(36) NOT NULL,
+        username VARCHAR(16) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX zevyx_panel_sessions_uuid (uuid),
+        INDEX zevyx_panel_sessions_expires_at (expires_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `).catch((error) => {
+      panelSessionTableReady = null;
+      throw error;
+    });
+  }
+
+  return panelSessionTableReady;
+}
+
+async function createPanelSession({ uuid, username }) {
+  await ensurePanelSessionTable();
+
+  const token = crypto.randomBytes(32).toString("base64url");
+
+  await pool.execute(
+    `DELETE FROM zevyx_panel_sessions
+     WHERE expires_at <= UTC_TIMESTAMP()`
+  );
+
+  await pool.execute(
+    `INSERT INTO zevyx_panel_sessions
+      (token_hash, uuid, username, expires_at)
+     VALUES
+      (:tokenHash, :uuid, :username, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 30 DAY))`,
+    {
+      tokenHash: sha256(token),
+      uuid,
+      username
+    }
+  );
+
+  return token;
+}
+
+async function getPanelActor(req) {
+  const authorization = String(req.get("authorization") || "");
+  const token = authorization.startsWith("Bearer ")
+    ? authorization.slice(7).trim()
+    : "";
+
+  if (!token) return null;
+
+  await ensurePanelSessionTable();
+
+  const [sessions] = await pool.execute(
+    `SELECT uuid, username
+     FROM zevyx_panel_sessions
+     WHERE token_hash = :tokenHash
+       AND expires_at > UTC_TIMESTAMP()
+     LIMIT 1`,
+    {
+      tokenHash: sha256(token)
+    }
+  );
+
+  const session = sessions[0];
+
+  if (!session) return null;
+
+  let group = "default";
+
+  if (lpPool) {
+    try {
+      const [players] = await lpPool.execute(
+        `SELECT primary_group
+         FROM luckperms_players
+         WHERE uuid = :uuid
+         LIMIT 1`,
+        { uuid: session.uuid }
+      );
+
+      group = String(players[0]?.primary_group || "default").toLowerCase();
+    } catch (error) {
+      console.error("LuckPerms role check failed:", error);
+    }
+  }
+
+  return {
+    uuid: session.uuid,
+    username: session.username,
+    group,
+    isStaff: group === "owner"
+  };
+}
+
+let ticketTablesReady = null;
+
+function ensureTicketTables() {
+  if (!ticketTablesReady) {
+    ticketTablesReady = Promise.all([
+      pool.query(`
+        CREATE TABLE IF NOT EXISTS zevyx_panel_tickets (
+          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          owner_uuid CHAR(36) NOT NULL,
+          owner_username VARCHAR(16) NOT NULL,
+          type VARCHAR(32) NOT NULL,
+          subject VARCHAR(120) NOT NULL,
+          status VARCHAR(16) NOT NULL DEFAULT 'open',
+          assigned_uuid CHAR(36) NULL,
+          assigned_username VARCHAR(16) NULL,
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ON UPDATE CURRENT_TIMESTAMP,
+          INDEX zevyx_tickets_owner (owner_uuid),
+          INDEX zevyx_tickets_status (status),
+          INDEX zevyx_tickets_updated (updated_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      `),
+
+      pool.query(`
+        CREATE TABLE IF NOT EXISTS zevyx_panel_ticket_messages (
+          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          ticket_id BIGINT UNSIGNED NOT NULL,
+          author_uuid CHAR(36) NOT NULL,
+          author_username VARCHAR(16) NOT NULL,
+          author_role VARCHAR(16) NOT NULL,
+          message TEXT NOT NULL,
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          INDEX zevyx_ticket_messages_ticket (ticket_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      `)
+    ]).catch((error) => {
+      ticketTablesReady = null;
+      throw error;
+    });
+  }
+
+  return ticketTablesReady;
+}
+
+app.post("/api/tickets", async (req, res) => {
+  let connection;
+
+  try {
+    const actor = await getPanelActor(req);
+
+    if (!actor) {
+      return res.status(401).json({
+        ok: false,
+        error: "Přihlášení vypršelo. Přihlas se znovu."
+      });
+    }
+
+    const type = String(req.body.type || "").trim().toLowerCase();
+    const subject = String(req.body.subject || "").trim();
+    const message = String(req.body.message || "").trim();
+
+    if (!["general", "bug", "payment", "appeal", "other"].includes(type)) {
+      return res.status(400).json({
+        ok: false,
+        error: "Vyber typ ticketu."
+      });
+    }
+
+    if (subject.length < 4 || subject.length > 120) {
+      return res.status(400).json({
+        ok: false,
+        error: "Název ticketu musí mít 4 až 120 znaků."
+      });
+    }
+
+    if (message.length < 10 || message.length > 5000) {
+      return res.status(400).json({
+        ok: false,
+        error: "Zpráva musí mít 10 až 5000 znaků."
+      });
+    }
+
+    await ensureTicketTables();
+
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [ticketResult] = await connection.execute(
+      `INSERT INTO zevyx_panel_tickets
+        (owner_uuid, owner_username, type, subject)
+       VALUES
+        (:ownerUuid, :ownerUsername, :type, :subject)`,
+      {
+        ownerUuid: actor.uuid,
+        ownerUsername: actor.username,
+        type,
+        subject
+      }
+    );
+
+    await connection.execute(
+      `INSERT INTO zevyx_panel_ticket_messages
+        (ticket_id, author_uuid, author_username, author_role, message)
+       VALUES
+        (:ticketId, :authorUuid, :authorUsername, 'player', :message)`,
+      {
+        ticketId: ticketResult.insertId,
+        authorUuid: actor.uuid,
+        authorUsername: actor.username,
+        message
+      }
+    );
+
+    await connection.commit();
+
+    return res.status(201).json({
+      ok: true,
+      ticket: {
+        id: ticketResult.insertId,
+        type,
+        subject,
+        status: "open"
+      }
+    });
+  } catch (error) {
+    if (connection) await connection.rollback();
+
+    console.error("Ticket create failed:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: "Ticket se nepodařilo vytvořit."
+    });
+  } finally {
+    connection?.release();
+  }
+});
+
+app.get("/api/tickets/:ticketId", async (req, res) => {
+  try {
+    const actor = await getPanelActor(req);
+    const ticketId = Number(req.params.ticketId);
+
+    if (!actor) {
+      return res.status(401).json({
+        ok: false,
+        error: "Přihlášení vypršelo. Přihlas se znovu."
+      });
+    }
+
+    if (!Number.isSafeInteger(ticketId) || ticketId < 1) {
+      return res.status(400).json({
+        ok: false,
+        error: "Neplatné číslo ticketu."
+      });
+    }
+
+    await ensureTicketTables();
+
+    const [tickets] = await pool.execute(
+      actor.isStaff
+        ? `SELECT *
+           FROM zevyx_panel_tickets
+           WHERE id = :ticketId
+           LIMIT 1`
+        : `SELECT *
+           FROM zevyx_panel_tickets
+           WHERE id = :ticketId
+             AND owner_uuid = :uuid
+           LIMIT 1`,
+      actor.isStaff
+        ? { ticketId }
+        : { ticketId, uuid: actor.uuid }
+    );
+
+    const ticket = tickets[0];
+
+    if (!ticket) {
+      return res.status(404).json({
+        ok: false,
+        error: "Ticket neexistuje nebo k němu nemáš přístup."
+      });
+    }
+
+    const [messages] = await pool.execute(
+      `SELECT
+         id,
+         author_uuid,
+         author_username,
+         author_role,
+         message,
+         created_at
+       FROM zevyx_panel_ticket_messages
+       WHERE ticket_id = :ticketId
+       ORDER BY created_at ASC`,
+      { ticketId }
+    );
+
+    return res.json({
+      ok: true,
+      isStaff: actor.isStaff,
+      ticket,
+      messages
+    });
+  } catch (error) {
+    console.error("Ticket detail failed:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: "Ticket se nepodařilo načíst."
+    });
+  }
+});
+
+app.post("/api/tickets/:ticketId/messages", async (req, res) => {
+  try {
+    const actor = await getPanelActor(req);
+    const ticketId = Number(req.params.ticketId);
+    const message = String(req.body.message || "").trim();
+
+    if (!actor) {
+      return res.status(401).json({
+        ok: false,
+        error: "Přihlášení vypršelo. Přihlas se znovu."
+      });
+    }
+
+    if (!Number.isSafeInteger(ticketId) || ticketId < 1) {
+      return res.status(400).json({
+        ok: false,
+        error: "Neplatné číslo ticketu."
+      });
+    }
+
+    if (message.length < 1 || message.length > 5000) {
+      return res.status(400).json({
+        ok: false,
+        error: "Zpráva musí mít 1 až 5000 znaků."
+      });
+    }
+
+    await ensureTicketTables();
+
+    const [tickets] = await pool.execute(
+      actor.isStaff
+        ? `SELECT id, status
+           FROM zevyx_panel_tickets
+           WHERE id = :ticketId
+           LIMIT 1`
+        : `SELECT id, status
+           FROM zevyx_panel_tickets
+           WHERE id = :ticketId
+             AND owner_uuid = :uuid
+           LIMIT 1`,
+      actor.isStaff
+        ? { ticketId }
+        : { ticketId, uuid: actor.uuid }
+    );
+
+    const ticket = tickets[0];
+
+    if (!ticket) {
+      return res.status(404).json({
+        ok: false,
+        error: "Ticket neexistuje nebo k němu nemáš přístup."
+      });
+    }
+
+    if (ticket.status === "closed") {
+      return res.status(409).json({
+        ok: false,
+        error: "Tento ticket je zavřený."
+      });
+    }
+
+    await pool.execute(
+      `INSERT INTO zevyx_panel_ticket_messages
+        (ticket_id, author_uuid, author_username, author_role, message)
+       VALUES
+        (:ticketId, :authorUuid, :authorUsername, :authorRole, :message)`,
+      {
+        ticketId,
+        authorUuid: actor.uuid,
+        authorUsername: actor.username,
+        authorRole: actor.isStaff ? "staff" : "player",
+        message
+      }
+    );
+
+    if (actor.isStaff) {
+      await pool.execute(
+        `UPDATE zevyx_panel_tickets
+         SET
+           updated_at = UTC_TIMESTAMP(),
+           assigned_uuid = COALESCE(assigned_uuid, :assignedUuid),
+           assigned_username = COALESCE(assigned_username, :assignedUsername)
+         WHERE id = :ticketId`,
+        {
+          ticketId,
+          assignedUuid: actor.uuid,
+          assignedUsername: actor.username
+        }
+      );
+    } else {
+      await pool.execute(
+        `UPDATE zevyx_panel_tickets
+         SET updated_at = UTC_TIMESTAMP()
+         WHERE id = :ticketId`,
+        { ticketId }
+      );
+    }
+
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("Ticket message failed:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: "Zprávu se nepodařilo odeslat."
+    });
+  }
+});
+
+app.post("/api/tickets/:ticketId/status", async (req, res) => {
+  try {
+    const actor = await getPanelActor(req);
+    const ticketId = Number(req.params.ticketId);
+    const status = String(req.body.status || "").trim().toLowerCase();
+
+    if (!actor) {
+      return res.status(401).json({
+        ok: false,
+        error: "Přihlášení vypršelo. Přihlas se znovu."
+      });
+    }
+
+    if (!Number.isSafeInteger(ticketId) || ticketId < 1) {
+      return res.status(400).json({
+        ok: false,
+        error: "Neplatné číslo ticketu."
+      });
+    }
+
+    if (!["open", "closed"].includes(status)) {
+      return res.status(400).json({
+        ok: false,
+        error: "Neplatný stav ticketu."
+      });
+    }
+
+    await ensureTicketTables();
+
+    const [tickets] = await pool.execute(
+      actor.isStaff
+        ? `SELECT id, owner_uuid
+           FROM zevyx_panel_tickets
+           WHERE id = :ticketId
+           LIMIT 1`
+        : `SELECT id, owner_uuid
+           FROM zevyx_panel_tickets
+           WHERE id = :ticketId
+             AND owner_uuid = :uuid
+           LIMIT 1`,
+      actor.isStaff
+        ? { ticketId }
+        : { ticketId, uuid: actor.uuid }
+    );
+
+    if (!tickets[0]) {
+      return res.status(404).json({
+        ok: false,
+        error: "Ticket neexistuje nebo k němu nemáš přístup."
+      });
+    }
+
+    if (!actor.isStaff && status !== "closed") {
+      return res.status(403).json({
+        ok: false,
+        error: "Ticket může znovu otevřít jen administrátor."
+      });
+    }
+
+    await pool.execute(
+      `UPDATE zevyx_panel_tickets
+       SET status = :status,
+           updated_at = UTC_TIMESTAMP()
+       WHERE id = :ticketId`,
+      { ticketId, status }
+    );
+
+    return res.json({ ok: true, status });
+  } catch (error) {
+    console.error("Ticket status change failed:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: "Stav ticketu se nepodařilo změnit."
+    });
+  }
+});
+
+app.get("/api/tickets", async (req, res) => {
+  try {
+    const actor = await getPanelActor(req);
+
+    if (!actor) {
+      return res.status(401).json({
+        ok: false,
+        error: "Přihlášení vypršelo. Přihlas se znovu."
+      });
+    }
+
+    await ensureTicketTables();
+
+    const [tickets] = await pool.execute(
+      actor.isStaff
+        ? `SELECT
+             id,
+             owner_uuid,
+             owner_username,
+             type,
+             subject,
+             status,
+             assigned_uuid,
+             assigned_username,
+             created_at,
+             updated_at
+           FROM zevyx_panel_tickets
+           ORDER BY updated_at DESC`
+        : `SELECT
+             id,
+             owner_uuid,
+             owner_username,
+             type,
+             subject,
+             status,
+             assigned_uuid,
+             assigned_username,
+             created_at,
+             updated_at
+           FROM zevyx_panel_tickets
+           WHERE owner_uuid = :uuid
+           ORDER BY updated_at DESC`,
+      actor.isStaff ? {} : { uuid: actor.uuid }
+    );
+
+    return res.json({
+      ok: true,
+      isStaff: actor.isStaff,
+      tickets
+    });
+  } catch (error) {
+    console.error("Ticket list failed:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: "Tickety se nepodařilo načíst."
+    });
+  }
+});
+
 app.post("/api/refresh-profile", async (req, res) => {
   try {
     const uuid = String(req.body.uuid || "").trim();
@@ -530,12 +1091,17 @@ app.post("/api/login", async (req, res) => {
     const uuid = pick(user, ["uuid", "premiumUuid"]) || offlineUuid(user.realname || user.username);
     const luckPerms = await getLuckPermsProfile(uuid);
     const playedTime = await getSavedPlaytime(uuid);
+    const sessionToken = await createPanelSession({
+  uuid,
+  username: user.realname || user.username
+});
 
     return res.json({
       ok: true,
       message: "Přihlášení proběhlo.",
       user: {
         username: user.realname || user.username,
+        sessionToken,
         email: user.email || null,
         uuid,
         rank: luckPerms.rank,
