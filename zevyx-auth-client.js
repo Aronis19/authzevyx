@@ -131,16 +131,43 @@ function field(name, label, type, placeholder, autocomplete) {
     );
   }
 
-  async function post(path, body) {
-    const res = await fetch(API_BASE + path, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || data.ok === false) throw new Error(data.error || "Něco se nepovedlo.");
-    return data;
+async function post(path, body) {
+  const savedUser = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  const headers = { "content-type": "application/json" };
+
+  if (savedUser.sessionToken) {
+    headers.Authorization = `Bearer ${savedUser.sessionToken}`;
   }
+
+  const res = await fetch(API_BASE + path, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body)
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false) throw new Error(data.error || "Něco se nepovedlo.");
+  return data;
+}
+
+async function get(path) {
+  const savedUser = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  const headers = {};
+
+  if (savedUser.sessionToken) {
+    headers.Authorization = `Bearer ${savedUser.sessionToken}`;
+  }
+
+  const res = await fetch(API_BASE + path, { headers });
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok || data.ok === false) {
+    throw new Error(data.error || "Něco se nepovedlo.");
+  }
+
+  return data;
+}
+
 async function refreshSavedUser(user) {
   if (!user?.uuid) return user;
 
@@ -1087,7 +1114,7 @@ html:not(.dark) .mobile-account-card strong {
 
   <div class="dash-nav-title" style="margin-top:18px">Podpora</div>
 
-  <button type="button" class="dash-nav-button">
+  <button type="button" class="dash-nav-button" data-page-open="ticket-create">
     <span class="dash-nav-icon">
       <svg viewBox="0 0 24 24"><path d="M5 4h14v12H9l-4 4z"/><path d="M8 8h8"/><path d="M8 12h5"/></svg>
     </span>
