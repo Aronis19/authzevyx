@@ -2189,11 +2189,17 @@ dropzone?.addEventListener("drop", (event) => {
       submitButton.style.opacity = ".65";
 
       try {
-        const data = await post("/api/tickets", {
-          type,
-          subject,
-          message
-        });
+const formData = new FormData();
+
+formData.append("type", type);
+formData.append("subject", subject);
+formData.append("message", message);
+
+for (const file of fileInput.files) {
+  formData.append("files", file);
+}
+
+const data = await postForm("/api/tickets", formData);
 
         messageBox.textContent = `Ticket #${data.ticket.id} byl vytvořen.`;
         messageBox.style.color = "#4ade80";
