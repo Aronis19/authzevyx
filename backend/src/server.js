@@ -139,6 +139,39 @@ async function storeTicketFiles({ ticketId, messageId, files, connection }) {
   }
 }
 
+async function createTicketAttachmentLinks(attachments) {
+  const list = Array.isArray(attachments) ? attachments : [];
+
+  if (!list.length) return [];
+
+  const bucket = String(process.env.SUPABASE_BUCKET || "").trim();
+
+  if (!supabase || !bucket) {
+    throw new Error("Ukládání příloh není nastavené.");
+  }
+
+  return Promise.all(list.map(async (attachment) => {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(attachment.storage_path, 10 * 60);
+
+    if (error || !data?.signedUrl) {
+      throw error || new Error("Nepodařilo se vytvořit odkaz na přílohu.");
+    }
+
+    return {
+      id: attachment.id,
+      ticket_id: attachment.ticket_id,
+      message_id: attachment.message_id,
+      original_name: attachment.original_name,
+      content_type: attachment.content_type,
+      size_bytes: attachment.size_bytes,
+      created_at: attachment.created_at,
+      url: data.signedUrl
+    };
+  }));
+}
+
 app.disable("x-powered-by");
 app.set("trust proxy", true);
 app.use(express.json({ limit: "32kb" }));
@@ -767,6 +800,41 @@ app.get("/api/tickets/:ticketId", async (req, res) => {
       });
     }
 
+const [attachments] = await pool.execute(
+  `SELECT
+     id,
+     ticket_id,
+     message_id,
+     storage_path,
+     original_name,
+     content_type,
+     size_bytes,
+     created_at
+   FROM zevyx_panel_ticket_attachments
+   WHERE ticket_id = :ticketId
+   ORDER BY id ASC`,
+  { ticketId }
+);
+
+const linkedAttachments = await createTicketAttachmentLinks(attachments);
+
+const attachmentsByMessage = new Map();
+
+for (const attachment of linkedAttachments) {
+  const key = String(attachment.message_id);
+
+  if (!attachmentsByMessage.has(key)) {
+    attachmentsByMessage.set(key, []);
+  }
+
+  attachmentsByMessage.get(key).push(attachment);
+}
+
+const messagesWithAttachments = messages.map((message) => ({
+  ...message,
+  attachments: attachmentsByMessage.get(String(message.id)) || []
+}));
+
     const [messages] = await pool.execute(
       `SELECT
          id,
@@ -785,7 +853,7 @@ app.get("/api/tickets/:ticketId", async (req, res) => {
       ok: true,
       isStaff: actor.isStaff,
       ticket,
-      messages
+      messages: messagesWithAttachments
     });
   } catch (error) {
     console.error("Ticket detail failed:", error);

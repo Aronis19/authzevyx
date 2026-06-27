@@ -2148,7 +2148,18 @@ fileInput?.addEventListener("change", () => {
 
 dropzone?.addEventListener("drop", (event) => {
   event.preventDefault();
-  showFiles(event.dataTransfer.files);
+
+  const droppedFiles = event.dataTransfer?.files;
+  if (!droppedFiles?.length) return;
+
+  const transfer = new DataTransfer();
+
+  [...droppedFiles].slice(0, 5).forEach((file) => {
+    transfer.items.add(file);
+  });
+
+  fileInput.files = transfer.files;
+  showFiles(fileInput.files);
 });
 
     messageInput?.addEventListener("input", () => {
