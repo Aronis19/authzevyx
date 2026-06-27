@@ -1199,6 +1199,7 @@ html:not(.dark) .mobile-account-card strong {
                 <tr>
                   <th>Cislo</th>
                   <th>Datum</th>
+                  <th>Akce</th>
                   <th>Typ</th>
                   <th>Akce</th>
                 </tr>
@@ -1964,15 +1965,16 @@ const showTicketsPage = async () => {
 
 <div class="dash-card" data-ticket-list style="max-width:1120px;overflow-x:auto">
   <table class="dash-table" style="min-width:760px;table-layout:fixed">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Název</th>
-              <th>Typ</th>
-              <th>Stav</th>
-              <th>Datum</th>
-            </tr>
-          </thead>
+<thead>
+  <tr>
+    <th>#</th>
+    <th>Název</th>
+    <th>Typ</th>
+    <th>Stav</th>
+    <th>Datum</th>
+    <th>Akce</th>
+  </tr>
+</thead>
           <tbody>
             ${
               tickets.length
@@ -1983,11 +1985,24 @@ const showTicketsPage = async () => {
                       <td>${esc(ticket.type)}</td>
                       <td>${ticket.status === "closed" ? "Zavřený" : "Otevřený"}</td>
                       <td>${formatDate(ticket.created_at)}</td>
+                      <td>
+  ${
+    ticket.status === "closed"
+      ? "—"
+      : `<button
+           type="button"
+           data-ticket-close="${ticket.id}"
+           style="border:1px solid #ef4444;border-radius:6px;padding:6px 10px;background:transparent;color:#f87171;font:inherit;font-size:12px;cursor:pointer"
+         >
+           Zavřít
+         </button>`
+  }
+</td>
                     </tr>
                   `).join("")
                 : `
                     <tr>
-                      <td colspan="5" style="color:var(--dash-muted);padding:18px 16px">
+                      <td colspan="6" style="color:var(--dash-muted);padding:18px 16px">
                         Zatím nemáš žádné tickety.
                       </td>
                     </tr>
@@ -2012,6 +2027,34 @@ const showTicketsPage = async () => {
 document.querySelectorAll('[data-page-open="tickets"]').forEach((button) => {
   button.addEventListener("click", showTicketsPage);
 });
+
+if (!document.body.dataset.ticketCloseBound) {
+  document.body.dataset.ticketCloseBound = "true";
+
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest?.("[data-ticket-close]");
+    if (!button) return;
+
+    const ticketId = button.dataset.ticketClose;
+
+    if (!confirm(`Opravdu chceš zavřít ticket #${ticketId}?`)) return;
+
+    button.disabled = true;
+    button.textContent = "Zavírám…";
+
+    try {
+      await post(`/api/tickets/${ticketId}/status`, {
+        status: "closed"
+      });
+
+      showTicketsPage();
+    } catch (error) {
+      alert(error.message);
+      button.disabled = false;
+      button.textContent = "Zavřít";
+    }
+  });
+}
 
 document.querySelectorAll('[data-page-open="password"]').forEach((button) => {
   button.addEventListener("click", showPasswordPage);
@@ -2210,7 +2253,9 @@ const updateProfile = async () => {
 if (
   changed &&
   document.body.dataset.zevyxPage !== "username" &&
-  document.body.dataset.zevyxPage !== "password"
+  document.body.dataset.zevyxPage !== "password" &&
+  document.body.dataset.zevyxPage !== "ticket-create" &&
+  document.body.dataset.zevyxPage !== "tickets"
 ) {
   profile(freshUser);
 }
