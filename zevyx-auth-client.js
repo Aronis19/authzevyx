@@ -2278,7 +2278,24 @@ const showTicketsPage = async () => {
                 ? tickets.map((ticket) => `
                     <tr>
                       <td>#${ticket.id}</td>
-                      <td>${esc(ticket.subject)}</td>
+                      <td>
+  <button
+    type="button"
+    data-ticket-open="${ticket.id}"
+    style="
+      border:0;
+      padding:0;
+      background:transparent;
+      color:var(--dash-text);
+      font:inherit;
+      font-size:inherit;
+      text-align:left;
+      cursor:pointer;
+    "
+  >
+    ${esc(ticket.subject)}
+  </button>
+</td>
                       <td>${esc(ticket.type)}</td>
                       <td>${ticket.status === "closed" ? "Zavřený" : "Otevřený"}</td>
                       <td>${formatDate(ticket.created_at)}</td>
@@ -2324,6 +2341,214 @@ const showTicketsPage = async () => {
 document.querySelectorAll('[data-page-open="tickets"]').forEach((button) => {
   button.addEventListener("click", showTicketsPage);
 });
+
+const showTicketDetailPage = async (ticketId) => {
+  const loader = q("[data-top-loader]");
+
+  loader?.classList.add("is-loading");
+  closeMobileSheets();
+
+  document.body.dataset.zevyxPage = "ticket-detail";
+
+  q(".dash-header").innerHTML = `
+    <span>Podpora</span>
+    <span style="margin:0 8px">›</span>
+    <strong style="color:var(--dash-text)">Ticket #${ticketId}</strong>
+  `;
+
+  q(".dash-content").innerHTML = `
+    <h1 class="dash-title">Ticket #${ticketId}</h1>
+
+    <div class="dash-card" style="padding:18px;color:var(--dash-muted)">
+      Načítám ticket…
+    </div>
+  `;
+
+  document.querySelectorAll(".dash-nav-button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.pageOpen === "tickets");
+  });
+
+  try {
+    const data = await get(`/api/tickets/${ticketId}`);
+    const ticket = data.ticket;
+    const messages = Array.isArray(data.messages) ? data.messages : [];
+
+    const avatar = (name) =>
+      `https://visage.surgeplay.com/face/64/${encodeURIComponent(name || "Steve")}`;
+
+    q(".dash-content").innerHTML = `
+      <style>
+        .ticket-detail-layout {
+          display:grid;
+          grid-template-columns:minmax(0, 1fr) 250px;
+          gap:18px;
+        }
+
+        .ticket-message {
+          display:flex;
+          gap:10px;
+          padding:14px 0;
+          border-bottom:1px solid var(--dash-border);
+        }
+
+        .ticket-message:last-child {
+          border-bottom:0;
+        }
+
+        .ticket-message-avatar {
+          width:34px;
+          height:34px;
+          border-radius:6px;
+          image-rendering:pixelated;
+          flex:0 0 34px;
+        }
+
+        .ticket-person {
+          display:flex;
+          align-items:center;
+          gap:10px;
+          padding:10px 0;
+          border-bottom:1px solid var(--dash-border);
+        }
+
+        .ticket-person:last-child {
+          border-bottom:0;
+        }
+
+        .ticket-person img {
+          width:32px;
+          height:32px;
+          border-radius:6px;
+          image-rendering:pixelated;
+        }
+
+        @media (max-width:760px) {
+          .ticket-detail-layout {
+            grid-template-columns:1fr;
+          }
+        }
+      </style>
+
+      <button
+        type="button"
+        data-ticket-back
+        style="
+          border:0;
+          padding:0;
+          margin:0 0 14px;
+          background:transparent;
+          color:var(--dash-muted);
+          font:inherit;
+          font-size:13px;
+          cursor:pointer;
+        "
+      >
+        ← Zpět na tickety
+      </button>
+
+      <div class="ticket-detail-layout">
+        <div class="dash-card" style="padding:18px">
+          <div style="padding-bottom:14px;border-bottom:1px solid var(--dash-border)">
+            <strong style="font-size:16px">${esc(ticket.subject)}</strong>
+
+            <div style="margin-top:6px;color:var(--dash-muted);font-size:12px">
+              #${ticket.id} · ${ticket.status === "closed" ? "Zavřený" : "Otevřený"} · ${formatDate(ticket.created_at)}
+            </div>
+          </div>
+
+          <div data-ticket-messages>
+            ${
+              messages.length
+                ? messages.map((message) => `
+                  <div class="ticket-message">
+                    <img
+                      class="ticket-message-avatar"
+                      src="${avatar(message.author_username)}"
+                      alt=""
+                    >
+
+                    <div style="min-width:0">
+                      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                        <strong style="font-size:13px">${esc(message.author_username)}</strong>
+
+                        <span style="color:var(--dash-muted);font-size:11px">
+                          ${message.author_role === "staff" ? "Staff" : "Hráč"}
+                        </span>
+
+                        <span style="color:var(--dash-muted);font-size:11px">
+                          ${formatDate(message.created_at)}
+                        </span>
+                      </div>
+
+                      <div style="margin-top:5px;white-space:pre-wrap;line-height:1.5;font-size:14px">
+                        ${esc(message.message)}
+                      </div>
+                    </div>
+                  </div>
+                `).join("")
+                : `<div style="padding:18px 0;color:var(--dash-muted)">Zatím tu nejsou žádné zprávy.</div>`
+            }
+          </div>
+        </div>
+
+        <aside class="dash-card" style="padding:16px">
+          <strong style="font-size:14px">Účastníci</strong>
+
+          <div style="margin-top:10px">
+            <div class="ticket-person">
+              <img src="${avatar(ticket.owner_username)}" alt="">
+              <div>
+                <strong style="display:block;font-size:13px">${esc(ticket.owner_username)}</strong>
+                <span style="color:var(--dash-muted);font-size:11px">Hráč</span>
+              </div>
+            </div>
+
+            ${
+              ticket.assigned_username
+                ? `
+                  <div class="ticket-person">
+                    <img src="${avatar(ticket.assigned_username)}" alt="">
+                    <div>
+                      <strong style="display:block;font-size:13px">${esc(ticket.assigned_username)}</strong>
+                      <span style="color:var(--dash-muted);font-size:11px">Staff</span>
+                    </div>
+                  </div>
+                `
+                : `
+                  <div style="padding:12px 0;color:var(--dash-muted);font-size:12px">
+                    Zatím nepřiřazeno žádnému staffovi.
+                  </div>
+                `
+            }
+          </div>
+        </aside>
+      </div>
+    `;
+
+    q("[data-ticket-back]")?.addEventListener("click", showTicketsPage);
+  } catch (error) {
+    q(".dash-content").innerHTML = `
+      <h1 class="dash-title">Ticket #${ticketId}</h1>
+
+      <div class="dash-card" style="padding:18px;color:#f87171">
+        ${esc(error.message)}
+      </div>
+    `;
+  } finally {
+    loader?.classList.remove("is-loading");
+  }
+};
+
+if (!document.body.dataset.ticketOpenBound) {
+  document.body.dataset.ticketOpenBound = "true";
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-ticket-open]");
+    if (!button) return;
+
+    showTicketDetailPage(Number(button.dataset.ticketOpen));
+  });
+}
 
 if (!document.body.dataset.ticketCloseBound) {
   document.body.dataset.ticketCloseBound = "true";
@@ -2553,6 +2778,7 @@ if (
   document.body.dataset.zevyxPage !== "password" &&
   document.body.dataset.zevyxPage !== "ticket-create" &&
   document.body.dataset.zevyxPage !== "tickets"
+  && document.body.dataset.zevyxPage !== "ticket-detail"
 ) {
   profile(freshUser);
 }
