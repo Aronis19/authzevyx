@@ -1709,41 +1709,46 @@ const showTicketCreatePage = () => {
       <form data-ticket-create-form class="ticket-create-form">
         <label class="ticket-create-field">
           Typ
-          <select name="type">
-            <optgroup label="Nahlášení">
-              <option value="general">Nahlášení hráče</option>
-              <option value="general">Porušení pravidel ve hře</option>
-              <option value="general">Porušení pravidel na Discordu</option>
-              <option value="general">Nahlášení uživatele</option>
-            </optgroup>
+<select name="type">
+  <optgroup label="Nahlášení">
+    <option value="general">Nahlášení hráče</option>
+    <option value="general">Porušení pravidel ve hře</option>
+    <option value="general">Porušení pravidel na Discordu</option>
+    <option value="general">Nahlášení uživatele</option>
+  </optgroup>
 
-            <optgroup label="Žádosti">
-              <option value="appeal">Žádost o zrušení trestu na Serveru</option>
-              <option value="appeal">Žádost o zrušení trestu na Discordu</option>
-              <option value="other">Žádost o Buildera</option>
-              <option value="other">Žádost o změnu e-mailové adresy</option>
-              <option value="other">Žádost o změnu jména</option>
-              <option value="other">Žádost o přidání mapy</option>
-            </optgroup>
+  <optgroup label="Žádosti">
+    <option value="appeal">Žádost o zrušení trestu na Serveru</option>
+    <option value="appeal">Žádost o zrušení trestu na Discordu</option>
+    <option value="other">Žádost o Buildera</option>
+    <option value="other">Žádost o změnu e-mailové adresy</option>
+    <option value="other">Žádost o smazání účtu</option>
+    <option value="other">Žádost o přidání mapy</option>
+  </optgroup>
 
-            <optgroup label="Stížnosti">
-              <option value="general">Stížnost na Builder Tým</option>
-              <option value="general">Stížnost na Helper Tým</option>
-              <option value="general">Stížnost na Vedení/Admin Týmu</option>
-            </optgroup>
+  <optgroup label="Stížnosti">
+    <option value="general">Stížnost na Builder Tým</option>
+    <option value="general">Stížnost na Helper Tým</option>
+    <option value="general">Stížnost na Vedení Admin Týmu</option>
+  </optgroup>
 
-            <optgroup label="Obchod">
-              <option value="payment">Problémy s transakcí</option>
-              <option value="payment">Problémy s nákupem</option>
-            </optgroup>
+  <optgroup label="Obchod">
+    <option value="payment">Problémy s transakcí</option>
+    <option value="payment">Problémy s nákupem</option>
+  </optgroup>
 
-            <optgroup label="Ostatní">
-              <option value="other">Návrh na novinku</option>
-              <option value="bug">Nahlášení chyby</option>
-              <option value="other">Problém s připojením</option>
-              <option value="other">Jiné</option>
-            </optgroup>
-          </select>
+  <optgroup label="Spolupráce">
+    <option value="other">Nabídka partnerství</option>
+    <option value="other">Chci být Creator</option>
+  </optgroup>
+
+  <optgroup label="Ostatní">
+    <option value="other">Návrh na novinku</option>
+    <option value="bug">Nahlášení chyby</option>
+    <option value="other">Problém s připojením</option>
+    <option value="other">Jiné</option>
+  </optgroup>
+</select>
         </label>
 
         <label class="ticket-create-field">
@@ -1950,7 +1955,7 @@ const showTicketsPage = async () => {
       <h1 class="dash-title">Moje tickety</h1>
 
       <style>
-      
+
   [data-ticket-list] {
     width:100%;
     overflow-x:auto;
