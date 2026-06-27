@@ -1040,19 +1040,19 @@ html:not(.dark) .mobile-account-card strong {
         <nav class="dash-nav">
   <div class="dash-nav-title">Profil</div>
 
-  <button type="button" class="dash-nav-button active">
+  <button type="button" class="dash-nav-button active" data-page-open="info">
     <span class="dash-nav-icon">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
     </span>
     Informace
   </button>
 
-  <button type="button" class="dash-nav-button">
-    <span class="dash-nav-icon">
-      <svg viewBox="0 0 24 24"><path d="m4 20 4.2-1 10.7-10.7a2.1 2.1 0 0 0-3-3L5.2 16z"/><path d="m14.5 6.5 3 3"/></svg>
-    </span>
-    Změna herního jména
-  </button>
+<button type="button" class="dash-nav-button" data-page-open="username">
+  <span class="dash-nav-icon">
+    <svg viewBox="0 0 24 24"><path d="m4 20 4.2-1 10.7-10.7a2.1 2.1 0 0 0-3-3L5.2 16z"/><path d="m14.5 6.5 3 3"/></svg>
+  </span>
+  Změna herního jména
+</button>
 
   <button type="button" class="dash-nav-button">
     <span class="dash-nav-icon">
@@ -1213,7 +1213,7 @@ html:not(.dark) .mobile-account-card strong {
     <button type="button" data-mobile-sheet-close>×</button>
   </div>
 
-  <button type="button" class="mobile-sheet-row" data-mobile-sheet-close>
+  <button type="button" class="mobile-sheet-row" data-mobile-sheet-close data-page-open="info">
     <span>
       <svg viewBox="0 0 24 24">
         <circle cx="12" cy="8" r="4"/>
@@ -1223,7 +1223,7 @@ html:not(.dark) .mobile-account-card strong {
     Informace
   </button>
 
-  <button type="button" class="mobile-sheet-row">
+  <button type="button" class="mobile-sheet-row" data-page-open="username">
     <span>
       <svg viewBox="0 0 24 24">
         <path d="m4 20 4.2-1 10.7-10.7a2.1 2.1 0 0 0-3-3L5.2 16z"/>
@@ -1358,6 +1358,50 @@ document.querySelectorAll("[data-mobile-sheet-close]").forEach((button) => {
 });
 
 mobileBackdrop?.addEventListener("click", closeMobileSheets);
+
+const showUsernamePage = () => {
+  const loader = q("[data-top-loader]");
+
+  loader?.classList.add("is-loading");
+  closeMobileSheets();
+
+  window.setTimeout(() => {
+  document.body.dataset.zevyxPage = "username";
+    q(".dash-header").innerHTML = `
+      <span>Profil</span>
+      <span style="margin:0 8px">›</span>
+      <strong style="color:var(--dash-text)">Změna herního jména</strong>
+    `;
+
+    q(".dash-content").innerHTML = `
+      <h1 class="dash-title">Změna herního jména</h1>
+
+      <div class="dash-card" style="padding:18px">
+        <strong>Tato funkce je nedostupná.</strong>
+      </div>
+    `;
+
+    document.querySelectorAll(".dash-nav-button").forEach((button) => {
+      button.classList.toggle(
+        "active",
+        button.dataset.pageOpen === "username"
+      );
+    });
+
+    loader?.classList.remove("is-loading");
+  }, 450);
+};
+
+document.querySelectorAll('[data-page-open="username"]').forEach((button) => {
+  button.addEventListener("click", showUsernamePage);
+});
+
+document.querySelectorAll('[data-page-open="info"]').forEach((button) => {
+  button.addEventListener("click", () => {
+    document.body.dataset.zevyxPage = "info";
+    profile(user);
+  });
+});
 
 const ipToggle = q("[data-ip-toggle]");
 const ipValue = q("[data-ip-value]");
@@ -1531,7 +1575,7 @@ const updateProfile = async () => {
       freshUser.rankPermanent !== oldUser.rankPermanent ||
       freshUser.playedTime !== oldUser.playedTime;
 
-    if (changed) {
+    if (changed && document.body.dataset.zevyxPage !== "username") {
       profile(freshUser);
     }
   } catch {
