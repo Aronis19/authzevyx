@@ -1950,21 +1950,46 @@ const showTicketsPage = async () => {
       <h1 class="dash-title">Moje tickety</h1>
 
       <style>
+      
+  [data-ticket-list] {
+    width:100%;
+    overflow-x:auto;
+  }
+
+  [data-ticket-list] .dash-table {
+    width:100%;
+    table-layout:fixed;
+  }
+
   [data-ticket-list] th,
   [data-ticket-list] td {
     text-align:left;
     vertical-align:middle;
   }
 
-  [data-ticket-list] th:nth-child(1) { width:8%; }
-  [data-ticket-list] th:nth-child(2) { width:34%; }
-  [data-ticket-list] th:nth-child(3) { width:18%; }
-  [data-ticket-list] th:nth-child(4) { width:18%; }
-  [data-ticket-list] th:nth-child(5) { width:22%; }
+  [data-ticket-list] th:nth-child(1) { width:7%; }
+  [data-ticket-list] th:nth-child(2) { width:32%; }
+  [data-ticket-list] th:nth-child(3) { width:14%; }
+  [data-ticket-list] th:nth-child(4) { width:14%; }
+  [data-ticket-list] th:nth-child(5) { width:21%; }
+  [data-ticket-list] th:nth-child(6) { width:12%; }
+
+  [data-ticket-list] th:nth-child(5),
+  [data-ticket-list] td:nth-child(5),
+  [data-ticket-list] th:nth-child(6),
+  [data-ticket-list] td:nth-child(6) {
+    white-space:nowrap;
+  }
+
+  @media (max-width:760px) {
+    [data-ticket-list] .dash-table {
+      min-width:760px;
+    }
+  }
 </style>
 
-<div class="dash-card" data-ticket-list style="max-width:1120px;overflow-x:auto">
-  <table class="dash-table" style="min-width:760px;table-layout:fixed">
+<div class="dash-card" data-ticket-list>
+  <table class="dash-table">
 <thead>
   <tr>
     <th>#</th>
