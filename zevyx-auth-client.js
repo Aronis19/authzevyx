@@ -1835,6 +1835,128 @@ const showTicketCreatePage = () => {
     const fileInput = q("[data-ticket-files-input]", form);
 const filesText = q("[data-ticket-files-text]", form);
 const dropzone = q("[data-ticket-dropzone]", form);
+const playersField = q('[name="players"]', form);
+
+if (playersField) {
+  const playerNames = [];
+
+  playersField.type = "hidden";
+  playersField.value = "";
+
+  const playersBox = document.createElement("div");
+  playersBox.style.cssText = `
+    display:flex;align-items:center;flex-wrap:wrap;gap:6px;
+    min-height:42px;padding:5px 8px;box-sizing:border-box;
+    border:1px solid var(--dash-border);border-radius:7px;
+    background:var(--dash-panel);cursor:text;
+  `;
+
+  const playerInput = document.createElement("input");
+  playerInput.type = "text";
+  playerInput.placeholder = "Zadej nick a potvrď Enterem nebo mezerou";
+  playerInput.autocomplete = "off";
+  playerInput.style.cssText = `
+    flex:1;min-width:180px;width:auto;height:28px;padding:0;
+    border:0;outline:0;background:transparent;color:var(--dash-text);
+    font:inherit;font-size:14px;
+  `;
+
+  playersField.insertAdjacentElement("afterend", playersBox);
+  playersBox.appendChild(playerInput);
+
+  const renderPlayers = () => {
+    playersBox.querySelectorAll("[data-ticket-player-tag]").forEach((tag) => tag.remove());
+
+    playerNames.forEach((name) => {
+      const tag = document.createElement("span");
+      tag.dataset.ticketPlayerTag = "true";
+      tag.style.cssText = `
+        display:inline-flex;align-items:center;gap:7px;
+        border:1px solid var(--dash-border);border-radius:6px;
+        padding:4px 7px;background:var(--dash-panel-hover);
+        color:var(--dash-text);font-size:13px;
+      `;
+
+      const text = document.createElement("span");
+      text.textContent = name;
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.style.cssText = `
+        border:0;padding:0;background:transparent;color:var(--dash-muted);
+        font:inherit;font-size:17px;line-height:14px;cursor:pointer;
+      `;
+
+      remove.addEventListener("click", () => {
+        const index = playerNames.indexOf(name);
+        if (index !== -1) playerNames.splice(index, 1);
+        renderPlayers();
+        playerInput.focus();
+      });
+
+      tag.append(text, remove);
+      playersBox.insertBefore(tag, playerInput);
+    });
+
+    playersField.value = playerNames.join(", ");
+  };
+
+  const addPlayers = (value) => {
+    value
+      .split(/[\s,]+/)
+      .map((name) => name.trim())
+      .filter(Boolean)
+      .forEach((name) => {
+        if (!playerNames.some((saved) => saved.toLowerCase() === name.toLowerCase())) {
+          playerNames.push(name);
+        }
+      });
+
+    renderPlayers();
+  };
+
+  playerInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      addPlayers(playerInput.value);
+      playerInput.value = "";
+    }
+
+    if (event.key === "Backspace" && !playerInput.value && playerNames.length) {
+      playerNames.pop();
+      renderPlayers();
+    }
+  });
+
+  playerInput.addEventListener("paste", () => {
+    setTimeout(() => {
+      if (/[\s,]/.test(playerInput.value)) {
+        addPlayers(playerInput.value);
+        playerInput.value = "";
+      }
+    }, 0);
+  });
+
+  playerInput.addEventListener("blur", () => {
+    addPlayers(playerInput.value);
+    playerInput.value = "";
+  });
+
+  playersBox.addEventListener("click", () => playerInput.focus());
+
+  form.addEventListener("submit", () => {
+    addPlayers(playerInput.value);
+    playerInput.value = "";
+  });
+
+  form.addEventListener("reset", () => {
+    setTimeout(() => {
+      playerNames.length = 0;
+      renderPlayers();
+    }, 0);
+  });
+}
 const makeTicketCustomSelect = (select) => {
   if (!select || select.dataset.customTicketSelect === "true") return;
 
