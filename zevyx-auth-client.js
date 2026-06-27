@@ -1612,75 +1612,254 @@ const showTicketCreatePage = () => {
     `;
 
     q(".dash-content").innerHTML = `
-      <h1 class="dash-title">Vytvořit ticket</h1>
+      <style>
+        .ticket-create-form {
+          display:flex;
+          flex-direction:column;
+          gap:12px;
+          width:100%;
+        }
 
-      <form data-ticket-create-form style="display:flex;flex-direction:column;gap:14px;max-width:720px">
-        <label style="font-size:12px;font-weight:700">
-          Typ ticketu
-          <select
-            name="type"
-            style="width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--dash-border);border-radius:7px;background:var(--dash-panel);color:var(--dash-text);font:inherit;box-sizing:border-box"
-          >
-            <option value="general">Obecný dotaz</option>
-            <option value="bug">Nahlášení chyby</option>
-            <option value="payment">Platba nebo obchod</option>
-            <option value="appeal">Odvolání trestu</option>
-            <option value="other">Ostatní</option>
+        .ticket-create-field {
+          display:flex;
+          flex-direction:column;
+          gap:6px;
+          font-size:12px;
+          font-weight:700;
+        }
+
+        .ticket-create-form input,
+        .ticket-create-form select,
+        .ticket-create-form textarea {
+          width:100%;
+          border:1px solid var(--dash-border);
+          border-radius:7px;
+          background:var(--dash-panel);
+          color:var(--dash-text);
+          font:inherit;
+          box-sizing:border-box;
+        }
+
+        .ticket-create-form input,
+        .ticket-create-form select {
+          height:36px;
+          padding:0 11px;
+        }
+
+        .ticket-create-form textarea {
+          min-height:120px;
+          padding:10px 11px;
+          resize:vertical;
+        }
+
+        .ticket-dropzone {
+          min-height:98px;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          gap:7px;
+          border:1px dashed var(--dash-border);
+          border-radius:9px;
+          color:var(--dash-muted);
+          text-align:center;
+          font-size:12px;
+        }
+
+        .ticket-submit-row {
+          display:flex;
+          justify-content:flex-end;
+        }
+
+        .ticket-submit-button {
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
+          border:1px solid #ffffff;
+          border-radius:8px;
+          padding:10px 13px;
+          background:#ffffff;
+          color:#111827;
+          font:inherit;
+          font-size:12px;
+          font-weight:800;
+          cursor:pointer;
+        }
+
+        @media (max-width:760px) {
+          .ticket-submit-row {
+            justify-content:stretch;
+          }
+
+          .ticket-submit-button {
+            width:100%;
+            justify-content:center;
+          }
+        }
+      </style>
+
+      <h1 class="dash-title" style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 9a3 3 0 0 0 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 0 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+          <path d="M13 5v2"/>
+          <path d="M13 11v2"/>
+          <path d="M13 17v2"/>
+        </svg>
+        Vytvořit ticket
+      </h1>
+
+      <form data-ticket-create-form class="ticket-create-form">
+        <label class="ticket-create-field">
+          Typ
+          <select name="type">
+            <optgroup label="Nahlášení">
+              <option value="general">Nahlášení hráče</option>
+              <option value="general">Porušení pravidel ve hře</option>
+              <option value="general">Porušení pravidel na Discordu</option>
+              <option value="general">Nahlášení uživatele</option>
+            </optgroup>
+
+            <optgroup label="Žádosti">
+              <option value="appeal">Žádost o zrušení trestu na Serveru</option>
+              <option value="appeal">Žádost o zrušení trestu na Discordu</option>
+              <option value="other">Žádost o Buildera</option>
+              <option value="other">Žádost o změnu e-mailové adresy</option>
+              <option value="other">Žádost o změnu jména</option>
+              <option value="other">Žádost o přidání mapy</option>
+            </optgroup>
+
+            <optgroup label="Stížnosti">
+              <option value="general">Stížnost na Builder Tým</option>
+              <option value="general">Stížnost na Helper Tým</option>
+              <option value="general">Stížnost na Vedení/Admin Týmu</option>
+            </optgroup>
+
+            <optgroup label="Obchod">
+              <option value="payment">Problémy s transakcí</option>
+              <option value="payment">Problémy s nákupem</option>
+            </optgroup>
+
+            <optgroup label="Ostatní">
+              <option value="other">Návrh na novinku</option>
+              <option value="bug">Nahlášení chyby</option>
+              <option value="other">Problém s připojením</option>
+              <option value="other">Jiné</option>
+            </optgroup>
           </select>
         </label>
 
-        <label style="font-size:12px;font-weight:700">
+        <label class="ticket-create-field">
+          Zaměření
+          <select name="focus">
+            <option value="">Helper tým</option>
+            <option value="Survival">Survival</option>
+            <option value="SkyBlock">SkyBlock</option>
+            <option value="Discord">Discord</option>
+            <option value="Obchod">Obchod</option>
+            <option value="Jiné">Jiné</option>
+          </select>
+        </label>
+
+        <label class="ticket-create-field">
           Krátký název
           <input
             type="text"
             name="subject"
             maxlength="120"
-            placeholder="Např. Problém s koupeným rankem"
-            style="width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--dash-border);border-radius:7px;background:var(--dash-panel);color:var(--dash-text);font:inherit;box-sizing:border-box"
+            placeholder="Stručně popiš problém"
           >
         </label>
 
-        <label style="font-size:12px;font-weight:700">
-          Zpráva
+        <label class="ticket-create-field">
+          Jména hráčů, kteří se provinili
+          <input
+            type="text"
+            name="players"
+            placeholder="Zadej nick a potvrď Enterem nebo mezerou"
+          >
+        </label>
+
+        <label class="ticket-create-field">
           <textarea
             name="message"
-            rows="8"
-            maxlength="5000"
-            placeholder="Popiš co nejvíc podrobností…"
-            style="width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--dash-border);border-radius:7px;background:var(--dash-panel);color:var(--dash-text);font:inherit;box-sizing:border-box;resize:vertical"
+            maxlength="2000"
+            placeholder="Napište zprávu..."
           ></textarea>
+          <span data-ticket-count style="align-self:flex-end;color:var(--dash-muted);font-size:11px;font-weight:500">
+            0 / 2000 znaků
+          </span>
         </label>
+
+        <div class="ticket-dropzone">
+          <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 16V4"/>
+            <path d="m7 9 5-5 5 5"/>
+            <path d="M20 16.7A4 4 0 0 0 18 9a6 6 0 0 0-11.6 1.5A4.5 4.5 0 0 0 4.5 19H7"/>
+          </svg>
+          <span>Přetáhni soubory nebo <u>otevři výběr</u></span>
+          <small style="font-size:10px">Přílohy zatím nejsou dostupné.</small>
+        </div>
 
         <div data-ticket-create-message style="font-size:13px"></div>
 
-        <button
-          type="submit"
-          style="width:100%;border:1px solid #ffffff;border-radius:10px;padding:12px 14px;background:#ffffff;color:#111827;font:inherit;font-weight:700;cursor:pointer"
-        >
-          Vytvořit ticket
-        </button>
+        <div class="ticket-submit-row">
+          <button type="submit" class="ticket-submit-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 9a3 3 0 0 0 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 0 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+              <path d="M13 5v2"/>
+              <path d="M13 11v2"/>
+              <path d="M13 17v2"/>
+            </svg>
+            Vytvořit ticket
+          </button>
+        </div>
       </form>
     `;
 
     document.querySelectorAll(".dash-nav-button").forEach((button) => {
-      button.classList.toggle(
-        "active",
-        button.dataset.pageOpen === "ticket-create"
-      );
+      button.classList.toggle("active", button.dataset.pageOpen === "ticket-create");
     });
 
     loader?.classList.remove("is-loading");
 
     const form = q("[data-ticket-create-form]");
     const messageBox = q("[data-ticket-create-message]", form);
+    const messageInput = q('[name="message"]', form);
+    const count = q("[data-ticket-count]", form);
+
+    messageInput?.addEventListener("input", () => {
+      count.textContent = `${messageInput.value.length} / 2000 znaků`;
+    });
 
     form?.addEventListener("submit", async (event) => {
       event.preventDefault();
 
       const submitButton = q('button[type="submit"]', form);
       const type = q('[name="type"]', form).value;
+      const typeLabel = q('[name="type"] option:checked', form)?.textContent.trim() || type;
+      const focus = q('[name="focus"]', form).value;
       const subject = q('[name="subject"]', form).value.trim();
-      const message = q('[name="message"]', form).value.trim();
+      const players = q('[name="players"]', form).value.trim();
+      const rawMessage = q('[name="message"]', form).value.trim();
+
+      if (subject.length < 4) {
+        messageBox.textContent = "Krátký název musí mít alespoň 4 znaky.";
+        messageBox.style.color = "#f87171";
+        return;
+      }
+
+      if (rawMessage.length < 10) {
+        messageBox.textContent = "Zpráva musí mít alespoň 10 znaků.";
+        messageBox.style.color = "#f87171";
+        return;
+      }
+
+      const message = [
+        `Typ ticketu: ${typeLabel}`,
+        focus && `Zaměření: ${focus}`,
+        players && `Hráči: ${players}`,
+        rawMessage
+      ].filter(Boolean).join("\\n\\n");
 
       submitButton.disabled = true;
       submitButton.style.opacity = ".65";
@@ -1695,6 +1874,7 @@ const showTicketCreatePage = () => {
         messageBox.textContent = `Ticket #${data.ticket.id} byl vytvořen.`;
         messageBox.style.color = "#4ade80";
         form.reset();
+        count.textContent = "0 / 2000 znaků";
       } catch (error) {
         messageBox.textContent = error.message;
         messageBox.style.color = "#f87171";
@@ -1742,8 +1922,22 @@ const showTicketsPage = async () => {
     q(".dash-content").innerHTML = `
       <h1 class="dash-title">Moje tickety</h1>
 
-      <div class="dash-card">
-        <table class="dash-table">
+      <style>
+  [data-ticket-list] th,
+  [data-ticket-list] td {
+    text-align:left;
+    vertical-align:middle;
+  }
+
+  [data-ticket-list] th:nth-child(1) { width:8%; }
+  [data-ticket-list] th:nth-child(2) { width:34%; }
+  [data-ticket-list] th:nth-child(3) { width:18%; }
+  [data-ticket-list] th:nth-child(4) { width:18%; }
+  [data-ticket-list] th:nth-child(5) { width:22%; }
+</style>
+
+<div class="dash-card" data-ticket-list style="max-width:1120px;overflow-x:auto">
+  <table class="dash-table" style="min-width:760px;table-layout:fixed">
           <thead>
             <tr>
               <th>#</th>
