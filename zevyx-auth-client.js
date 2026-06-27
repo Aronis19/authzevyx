@@ -1613,78 +1613,83 @@ const showTicketCreatePage = () => {
 
     q(".dash-content").innerHTML = `
       <style>
-        .ticket-create-form {
-          display:flex;
-          flex-direction:column;
-          gap:12px;
-          width:100%;
-        }
+.ticket-create-form {
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  width:100%;
+  font-size:14px;
+}
 
-        .ticket-create-field {
-          display:flex;
-          flex-direction:column;
-          gap:6px;
-          font-size:12px;
-          font-weight:700;
-        }
+.ticket-create-field {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  font-size:14px;
+  font-weight:400;
+}
 
-        .ticket-create-form input,
-        .ticket-create-form select,
-        .ticket-create-form textarea {
-          width:100%;
-          border:1px solid var(--dash-border);
-          border-radius:7px;
-          background:var(--dash-panel);
-          color:var(--dash-text);
-          font:inherit;
-          box-sizing:border-box;
-        }
+.ticket-create-form input,
+.ticket-create-form select,
+.ticket-create-form textarea {
+  width:100%;
+  border:1px solid var(--dash-border);
+  border-radius:7px;
+  background:var(--dash-panel);
+  color:var(--dash-text);
+  font:inherit;
+  font-size:14px;
+  font-weight:400;
+  box-sizing:border-box;
+}
 
-        .ticket-create-form input,
-        .ticket-create-form select {
-          height:36px;
-          padding:0 11px;
-        }
+.ticket-create-form input,
+.ticket-create-form select {
+  height:42px;
+  padding:0 12px;
+}
 
-        .ticket-create-form textarea {
-          min-height:120px;
-          padding:10px 11px;
-          resize:vertical;
-        }
+.ticket-create-form textarea {
+  min-height:150px;
+  padding:12px;
+  resize:vertical;
+}
 
-        .ticket-dropzone {
-          min-height:98px;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          gap:7px;
-          border:1px dashed var(--dash-border);
-          border-radius:9px;
-          color:var(--dash-muted);
-          text-align:center;
-          font-size:12px;
-        }
+.ticket-dropzone {
+  min-height:110px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border:1px dashed var(--dash-border);
+  border-radius:9px;
+  color:var(--dash-muted);
+  text-align:center;
+  font-size:14px;
+  font-weight:400;
+  cursor:pointer;
+}
 
-        .ticket-submit-row {
-          display:flex;
-          justify-content:flex-end;
-        }
+.ticket-submit-row {
+  display:flex;
+  justify-content:flex-end;
+}
 
-        .ticket-submit-button {
-          display:inline-flex;
-          align-items:center;
-          gap:7px;
-          border:1px solid #ffffff;
-          border-radius:8px;
-          padding:10px 13px;
-          background:#ffffff;
-          color:#111827;
-          font:inherit;
-          font-size:12px;
-          font-weight:800;
-          cursor:pointer;
-        }
+.ticket-submit-button {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border:1px solid #ffffff;
+  border-radius:8px;
+  padding:11px 14px;
+  background:#ffffff;
+  color:#111827;
+  font:inherit;
+  font-size:14px;
+  font-weight:500;
+  cursor:pointer;
+}
 
         @media (max-width:760px) {
           .ticket-submit-row {
@@ -1698,15 +1703,7 @@ const showTicketCreatePage = () => {
         }
       </style>
 
-      <h1 class="dash-title" style="display:flex;align-items:center;gap:8px">
-        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M2 9a3 3 0 0 0 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 0 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
-          <path d="M13 5v2"/>
-          <path d="M13 11v2"/>
-          <path d="M13 17v2"/>
-        </svg>
-        Vytvořit ticket
-      </h1>
+      <h1 class="dash-title">Vytvořit ticket</h1>
 
       <form data-ticket-create-form class="ticket-create-form">
         <label class="ticket-create-field">
@@ -1790,15 +1787,18 @@ const showTicketCreatePage = () => {
           </span>
         </label>
 
-        <div class="ticket-dropzone">
-          <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 16V4"/>
-            <path d="m7 9 5-5 5 5"/>
-            <path d="M20 16.7A4 4 0 0 0 18 9a6 6 0 0 0-11.6 1.5A4.5 4.5 0 0 0 4.5 19H7"/>
-          </svg>
-          <span>Přetáhni soubory nebo <u>otevři výběr</u></span>
-          <small style="font-size:10px">Přílohy zatím nejsou dostupné.</small>
-        </div>
+<label class="ticket-dropzone" data-ticket-dropzone>
+  <input type="file" multiple hidden data-ticket-files-input>
+
+  <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M12 16V4"/>
+    <path d="m7 9 5-5 5 5"/>
+    <path d="M5 20h14"/>
+  </svg>
+
+  <span>Přetáhni soubory nebo <u>otevři výběr</u></span>
+  <small data-ticket-files-text style="font-size:11px">Žádné soubory nejsou vybrané.</small>
+</label>
 
         <div data-ticket-create-message style="font-size:13px"></div>
 
@@ -1826,6 +1826,32 @@ const showTicketCreatePage = () => {
     const messageBox = q("[data-ticket-create-message]", form);
     const messageInput = q('[name="message"]', form);
     const count = q("[data-ticket-count]", form);
+    const fileInput = q("[data-ticket-files-input]", form);
+const filesText = q("[data-ticket-files-text]", form);
+const dropzone = q("[data-ticket-dropzone]", form);
+
+const showFiles = (files) => {
+  const names = [...files].map((file) => file.name);
+
+  filesText.textContent = names.length
+    ? names.join(", ")
+    : "Žádné soubory nejsou vybrané.";
+};
+
+fileInput?.addEventListener("change", () => {
+  showFiles(fileInput.files);
+});
+
+["dragenter", "dragover"].forEach((eventName) => {
+  dropzone?.addEventListener(eventName, (event) => {
+    event.preventDefault();
+  });
+});
+
+dropzone?.addEventListener("drop", (event) => {
+  event.preventDefault();
+  showFiles(event.dataTransfer.files);
+});
 
     messageInput?.addEventListener("input", () => {
       count.textContent = `${messageInput.value.length} / 2000 znaků`;
