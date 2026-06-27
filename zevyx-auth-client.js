@@ -1835,6 +1835,132 @@ const showTicketCreatePage = () => {
     const fileInput = q("[data-ticket-files-input]", form);
 const filesText = q("[data-ticket-files-text]", form);
 const dropzone = q("[data-ticket-dropzone]", form);
+const makeTicketCustomSelect = (select) => {
+  if (!select || select.dataset.customTicketSelect === "true") return;
+
+  select.dataset.customTicketSelect = "true";
+  select.style.display = "none";
+
+  const box = document.createElement("div");
+  box.style.position = "relative";
+  box.style.width = "100%";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.style.cssText = `
+    width:100%;height:42px;display:flex;align-items:center;
+    justify-content:space-between;border:1px solid var(--dash-border);
+    border-radius:7px;padding:0 12px;background:var(--dash-panel);
+    color:var(--dash-text);font:inherit;font-size:14px;cursor:pointer;
+  `;
+
+  const label = document.createElement("span");
+  const arrow = document.createElement("span");
+  arrow.textContent = "⌄";
+  arrow.style.fontSize = "18px";
+
+  button.append(label, arrow);
+
+  const menu = document.createElement("div");
+  menu.style.cssText = `
+    position:absolute;z-index:100;top:calc(100% + 7px);left:0;right:0;
+    display:none;max-height:520px;overflow-y:auto;padding:7px;
+    border:1px solid var(--dash-border);border-radius:9px;
+    background:var(--dash-panel);box-shadow:0 18px 42px rgba(0,0,0,.4);
+  `;
+
+  const update = () => {
+    const selected = select.options[select.selectedIndex];
+    label.textContent = selected?.textContent || "Vyber možnost";
+
+    menu.querySelectorAll("[data-select-index]").forEach((item) => {
+      const active = Number(item.dataset.selectIndex) === select.selectedIndex;
+      item.style.background = active ? "var(--dash-panel-hover)" : "transparent";
+      item.lastChild.style.opacity = active ? "1" : "0";
+    });
+  };
+
+  const addOption = (option, index) => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.dataset.selectIndex = String(index);
+    item.style.cssText = `
+      width:100%;display:flex;align-items:center;justify-content:space-between;
+      gap:12px;border:0;border-radius:6px;padding:9px 8px;
+      background:transparent;color:var(--dash-text);font:inherit;
+      font-size:14px;text-align:left;cursor:pointer;
+    `;
+
+    const text = document.createElement("span");
+    text.textContent = option.textContent;
+
+    const check = document.createElement("span");
+    check.textContent = "✓";
+    check.style.opacity = "0";
+
+    item.append(text, check);
+
+    item.addEventListener("click", () => {
+      select.selectedIndex = index;
+      select.dispatchEvent(new Event("change"));
+      menu.style.display = "none";
+      arrow.textContent = "⌄";
+    });
+
+    menu.appendChild(item);
+  };
+
+  const groups = [...select.querySelectorAll("optgroup")];
+
+  if (groups.length) {
+    groups.forEach((group) => {
+      const title = document.createElement("div");
+      title.textContent = group.label;
+      title.style.cssText = `
+        margin-top:7px;padding:7px 8px;color:var(--dash-muted);
+        font-size:12px;font-weight:600;
+      `;
+      menu.appendChild(title);
+
+      [...group.children].forEach((option) => {
+        addOption(option, [...select.options].indexOf(option));
+      });
+    });
+  } else {
+    [...select.options].forEach((option, index) => {
+      addOption(option, index);
+    });
+  }
+
+  button.addEventListener("click", () => {
+    const open = menu.style.display !== "block";
+
+    document.querySelectorAll("[data-ticket-custom-menu]").forEach((other) => {
+      other.style.display = "none";
+    });
+
+    document.querySelectorAll("[data-ticket-custom-arrow]").forEach((other) => {
+      other.textContent = "⌄";
+    });
+
+    menu.style.display = open ? "block" : "none";
+    arrow.textContent = open ? "⌃" : "⌄";
+  });
+
+  menu.dataset.ticketCustomMenu = "true";
+  arrow.dataset.ticketCustomArrow = "true";
+
+  select.insertAdjacentElement("afterend", box);
+  box.append(button, menu);
+
+  select.addEventListener("change", update);
+  form.addEventListener("reset", () => setTimeout(update, 0));
+
+  update();
+};
+
+makeTicketCustomSelect(q('[name="type"]', form));
+makeTicketCustomSelect(q('[name="focus"]', form));
 
 const showFiles = (files) => {
   const names = [...files].map((file) => file.name);
