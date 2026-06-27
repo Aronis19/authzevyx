@@ -738,9 +738,11 @@ function profile(user) {
     right: 0;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    height: 70px;
+    height: 72px;
     border-top: 1px solid var(--dash-border);
-    background: var(--dash-panel);
+    background: rgba(10, 10, 12, .96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 
   .mobile-bottom-nav button {
@@ -754,6 +756,11 @@ function profile(user) {
     color: var(--dash-muted);
     font: inherit;
     cursor: pointer;
+    transition: color .18s ease, transform .18s ease;
+  }
+
+  .mobile-bottom-nav button:active {
+    transform: scale(.98);
   }
 
   .mobile-bottom-nav button span {
@@ -763,6 +770,7 @@ function profile(user) {
 
   .mobile-bottom-nav button small {
     font-size: 10px;
+    font-weight: 600;
   }
 
   .mobile-bottom-nav button.is-active {
@@ -776,14 +784,16 @@ function profile(user) {
     display: block;
     visibility: hidden;
     opacity: 0;
-    background: rgba(0, 0, 0, .7);
-    transition: opacity .2s ease, visibility 0s linear .2s;
+    background: rgba(0, 0, 0, .72);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    transition: opacity .22s ease, visibility 0s linear .22s;
   }
 
   .mobile-sheet-backdrop.is-open {
     visibility: visible;
     opacity: 1;
-    transition: opacity .2s ease;
+    transition: opacity .22s ease;
   }
 
   .mobile-sheet {
@@ -793,15 +803,16 @@ function profile(user) {
     left: 0;
     right: 0;
     display: block;
-    max-height: 78svh;
+    max-height: 82svh;
     overflow-y: auto;
-    padding: 8px;
-    border: 1px solid var(--dash-border);
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,.08);
     border-bottom: 0;
     border-radius: 18px 18px 0 0;
-    background: var(--dash-bg);
+    background: #09090b;
+    box-shadow: 0 -18px 40px rgba(0, 0, 0, .45);
     transform: translateY(110%);
-    transition: transform .26s cubic-bezier(.22, .61, .36, 1);
+    transition: transform .28s cubic-bezier(.22, .61, .36, 1);
   }
 
   .mobile-sheet.is-open {
@@ -812,8 +823,9 @@ function profile(user) {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 2px 14px;
+    padding: 4px 2px 14px;
     font-size: 16px;
+    font-weight: 800;
   }
 
   .mobile-sheet-head button {
@@ -834,31 +846,44 @@ function profile(user) {
     gap: 12px;
     width: 100%;
     min-height: 58px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     padding: 0 14px;
     border: 1px solid var(--dash-border);
-    border-radius: 12px;
-    background: var(--dash-panel);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
     color: var(--dash-text);
     font: inherit;
     font-size: 14px;
     font-weight: 700;
     text-align: left;
+    box-sizing: border-box;
   }
 
   .mobile-sheet-row {
     cursor: pointer;
+    transition: background .18s ease, border-color .18s ease, transform .18s ease;
+  }
+
+  .mobile-sheet-row:active {
+    transform: scale(.99);
+  }
+
+  .mobile-sheet-row:hover {
+    background: rgba(255,255,255,.04);
+    border-color: rgba(255,255,255,.12);
   }
 
   .mobile-sheet-row span {
-    width: 20px;
+    width: 22px;
     color: var(--dash-muted);
     font-size: 20px;
     text-align: center;
+    flex: 0 0 22px;
   }
 
   .mobile-account-card {
     justify-content: flex-start;
+    min-height: 70px;
   }
 
   .mobile-account-card .dash-avatar {
@@ -866,8 +891,13 @@ function profile(user) {
     height: 38px;
   }
 
+  .mobile-account-card strong {
+    font-size: 14px;
+  }
+
   .mobile-logout {
-    border-color: rgba(239, 68, 68, .4);
+    border-color: rgba(239, 68, 68, .28);
+    background: rgba(127, 29, 29, .22);
     color: #f87171;
   }
 
