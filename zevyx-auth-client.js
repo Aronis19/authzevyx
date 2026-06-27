@@ -1499,7 +1499,7 @@ const showPasswordPage = () => {
     loader?.classList.remove("is-loading");
 const passwordForm = q("[data-change-password-form]");
 
-passwordForm?.addEventListener("submit", (event) => {
+passwordForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const currentPassword = q('[name="currentPassword"]', passwordForm).value;
@@ -1519,8 +1519,35 @@ passwordForm?.addEventListener("submit", (event) => {
     return;
   }
 
-  message.textContent = "Hesla souhlasí.";
+const submitButton = q('button[type="submit"]', passwordForm);
+
+submitButton.disabled = true;
+submitButton.style.opacity = ".65";
+
+try {
+  const data = await post("/api/change-password", {
+    username: user.username,
+    currentPassword,
+    newPassword
+  });
+
+  message.textContent = data.message || "Heslo bylo změněno.";
   message.style.color = "#4ade80";
+
+  passwordForm.reset();
+
+  localStorage.removeItem(STORAGE_KEY);
+
+  window.setTimeout(() => {
+    location.reload();
+  }, 1500);
+} catch (error) {
+  message.textContent = error.message;
+  message.style.color = "#f87171";
+} finally {
+  submitButton.disabled = false;
+  submitButton.style.opacity = "";
+}
 });
   }, 450);
 };
