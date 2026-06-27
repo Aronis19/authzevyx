@@ -713,6 +713,13 @@ function profile(user) {
   transform: translateY(0);
 }
 
+html.dark .mobile-sheet-row,
+html.dark .mobile-account-card {
+  background: #171719;
+  border-color: #303034;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .02);
+}
+
 .mobile-sheet-backdrop {
   position: fixed;
   z-index: 90;
