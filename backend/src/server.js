@@ -442,6 +442,12 @@ async function getPanelActor(req) {
     }
   }
 
+console.log("[TICKETS ROLE]", {
+  username: session.username,
+  group,
+  isStaff: group === "owner"
+});
+
   return {
     uuid: session.uuid,
     username: session.username,
