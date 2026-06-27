@@ -2187,7 +2187,7 @@ document.querySelectorAll('[data-page-open="ticket-create"]').forEach((button) =
   button.addEventListener("click", showTicketCreatePage);
 });
 
-const showTicketsPage = async () => {
+const showTicketsPage = async (startTab = "mine") => {
   const loader = q("[data-top-loader]");
 
   loader?.classList.add("is-loading");
@@ -2215,117 +2215,234 @@ const showTicketsPage = async () => {
   try {
     const data = await get("/api/tickets");
     const tickets = Array.isArray(data.tickets) ? data.tickets : [];
+    const isStaff = data.isStaff === true;
+
+    const sameUuid = (first, second) =>
+      String(first || "").replaceAll("-", "").toLowerCase() ===
+      String(second || "").replaceAll("-", "").toLowerCase();
+
+    const myTickets = isStaff
+      ? tickets.filter((ticket) => sameUuid(ticket.owner_uuid, user.uuid))
+      : tickets;
+
+    const playerTickets = isStaff
+      ? tickets.filter((ticket) => !sameUuid(ticket.owner_uuid, user.uuid))
+      : [];
+
+    const renderRows = (list, emptyText) => {
+      if (!list.length) {
+        return `
+          <tr>
+            <td colspan="6" style="color:var(--dash-muted);padding:18px 16px">
+              ${emptyText}
+            </td>
+          </tr>
+        `;
+      }
+
+      return list.map((ticket) => `
+        <tr>
+          <td>#${ticket.id}</td>
+
+          <td>
+            <button
+              type="button"
+              data-ticket-open="${ticket.id}"
+              style="
+                border:0;
+                padding:0;
+                background:transparent;
+                color:var(--dash-text);
+                font:inherit;
+                font-size:inherit;
+                text-align:left;
+                cursor:pointer;
+              "
+            >
+              ${esc(ticket.subject)}
+            </button>
+
+            ${
+              isStaff
+                ? `
+                  <div style="margin-top:4px;color:var(--dash-muted);font-size:11px">
+                    Hráč: ${esc(ticket.owner_username || "-")}
+                  </div>
+                `
+                : ""
+            }
+          </td>
+
+          <td>${esc(ticket.type)}</td>
+
+          <td>${ticket.status === "closed" ? "Zavřený" : "Otevřený"}</td>
+
+          <td>${formatDate(ticket.created_at)}</td>
+
+          <td>
+            ${
+              ticket.status === "closed"
+                ? "—"
+                : `
+                  <button
+                    type="button"
+                    data-ticket-close="${ticket.id}"
+                    style="
+                      border:1px solid #ef4444;
+                      border-radius:6px;
+                      padding:6px 10px;
+                      background:transparent;
+                      color:#f87171;
+                      font:inherit;
+                      font-size:12px;
+                      cursor:pointer;
+                    "
+                  >
+                    Zavřít
+                  </button>
+                `
+            }
+          </td>
+        </tr>
+      `).join("");
+    };
+
+    const renderTable = (list, emptyText) => `
+      <div class="dash-card" data-ticket-list>
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Název</th>
+              <th>Typ</th>
+              <th>Stav</th>
+              <th>Datum</th>
+              <th>Akce</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${renderRows(list, emptyText)}
+          </tbody>
+        </table>
+      </div>
+    `;
 
     q(".dash-content").innerHTML = `
       <h1 class="dash-title">Moje tickety</h1>
 
       <style>
+        [data-ticket-list] {
+          width:100%;
+          overflow-x:auto;
+        }
 
-  [data-ticket-list] {
-    width:100%;
-    overflow-x:auto;
-  }
+        [data-ticket-list] .dash-table {
+          width:100%;
+          table-layout:fixed;
+        }
 
-  [data-ticket-list] .dash-table {
-    width:100%;
-    table-layout:fixed;
-  }
+        [data-ticket-list] th,
+        [data-ticket-list] td {
+          text-align:left;
+          vertical-align:middle;
+        }
 
-  [data-ticket-list] th,
-  [data-ticket-list] td {
-    text-align:left;
-    vertical-align:middle;
-  }
+        [data-ticket-list] th:nth-child(1) { width:7%; }
+        [data-ticket-list] th:nth-child(2) { width:32%; }
+        [data-ticket-list] th:nth-child(3) { width:14%; }
+        [data-ticket-list] th:nth-child(4) { width:14%; }
+        [data-ticket-list] th:nth-child(5) { width:21%; }
+        [data-ticket-list] th:nth-child(6) { width:12%; }
 
-  [data-ticket-list] th:nth-child(1) { width:7%; }
-  [data-ticket-list] th:nth-child(2) { width:32%; }
-  [data-ticket-list] th:nth-child(3) { width:14%; }
-  [data-ticket-list] th:nth-child(4) { width:14%; }
-  [data-ticket-list] th:nth-child(5) { width:21%; }
-  [data-ticket-list] th:nth-child(6) { width:12%; }
+        [data-ticket-list] th:nth-child(5),
+        [data-ticket-list] td:nth-child(5),
+        [data-ticket-list] th:nth-child(6),
+        [data-ticket-list] td:nth-child(6) {
+          white-space:nowrap;
+        }
 
-  [data-ticket-list] th:nth-child(5),
-  [data-ticket-list] td:nth-child(5),
-  [data-ticket-list] th:nth-child(6),
-  [data-ticket-list] td:nth-child(6) {
-    white-space:nowrap;
-  }
+        .ticket-tabs {
+          display:flex;
+          gap:8px;
+          margin:0 0 14px;
+        }
 
+        .ticket-tab {
+          border:1px solid var(--dash-border);
+          border-radius:7px;
+          padding:8px 11px;
+          background:transparent;
+          color:var(--dash-muted);
+          font:inherit;
+          font-size:13px;
+          cursor:pointer;
+        }
 
-  
-  @media (max-width:760px) {
-    [data-ticket-list] .dash-table {
-      min-width:760px;
-    }
-  }
-</style>
+        .ticket-tab.is-active {
+          background:var(--dash-active);
+          color:var(--dash-text);
+        }
 
-<div class="dash-card" data-ticket-list>
-  <table class="dash-table">
-<thead>
-  <tr>
-    <th>#</th>
-    <th>Název</th>
-    <th>Typ</th>
-    <th>Stav</th>
-    <th>Datum</th>
-    <th>Akce</th>
-  </tr>
-</thead>
-          <tbody>
-            ${
-              tickets.length
-                ? tickets.map((ticket) => `
-                    <tr>
-                      <td>#${ticket.id}</td>
-                      <td>
-  <button
-    type="button"
-    data-ticket-open="${ticket.id}"
-    style="
-      border:0;
-      padding:0;
-      background:transparent;
-      color:var(--dash-text);
-      font:inherit;
-      font-size:inherit;
-      text-align:left;
-      cursor:pointer;
-    "
-  >
-    ${esc(ticket.subject)}
-  </button>
-</td>
-                      <td>${esc(ticket.type)}</td>
-                      <td>${ticket.status === "closed" ? "Zavřený" : "Otevřený"}</td>
-                      <td>${formatDate(ticket.created_at)}</td>
-                      <td>
-  ${
-    ticket.status === "closed"
-      ? "—"
-      : `<button
-           type="button"
-           data-ticket-close="${ticket.id}"
-           style="border:1px solid #ef4444;border-radius:6px;padding:6px 10px;background:transparent;color:#f87171;font:inherit;font-size:12px;cursor:pointer"
-         >
-           Zavřít
-         </button>`
-  }
-</td>
-                    </tr>
-                  `).join("")
-                : `
-                    <tr>
-                      <td colspan="6" style="color:var(--dash-muted);padding:18px 16px">
-                        Zatím nemáš žádné tickety.
-                      </td>
-                    </tr>
-                  `
-            }
-          </tbody>
-        </table>
-      </div>
+        @media (max-width:760px) {
+          [data-ticket-list] .dash-table {
+            min-width:760px;
+          }
+
+          .ticket-tabs {
+            overflow-x:auto;
+          }
+
+          .ticket-tab {
+            white-space:nowrap;
+          }
+        }
+      </style>
+
+      ${
+        isStaff
+          ? `
+            <div class="ticket-tabs">
+              <button type="button" class="ticket-tab" data-ticket-tab="mine">
+                Moje tickety (${myTickets.length})
+              </button>
+
+              <button type="button" class="ticket-tab" data-ticket-tab="players">
+                Tickety hráčů (${playerTickets.length})
+              </button>
+            </div>
+          `
+          : ""
+      }
+
+      <div data-ticket-table></div>
     `;
+
+    const renderTab = (tab) => {
+      const activeTab = isStaff && tab === "players" ? "players" : "mine";
+
+      document.body.dataset.ticketTab = activeTab;
+
+      document.querySelectorAll("[data-ticket-tab]").forEach((button) => {
+        button.classList.toggle(
+          "is-active",
+          button.dataset.ticketTab === activeTab
+        );
+      });
+
+      q("[data-ticket-table]").innerHTML =
+        activeTab === "players"
+          ? renderTable(playerTickets, "Žádný hráč zatím nemá ticket.")
+          : renderTable(myTickets, "Zatím nemáš žádné tickety.");
+    };
+
+    renderTab(startTab);
+
+    document.querySelectorAll("[data-ticket-tab]").forEach((button) => {
+      button.addEventListener("click", () => {
+        renderTab(button.dataset.ticketTab);
+      });
+    });
   } catch (error) {
     q(".dash-content").innerHTML = `
       <h1 class="dash-title">Moje tickety</h1>
@@ -2575,7 +2692,9 @@ ${ticket.status === "closed" ? `
       </div>
     `;
 
-    q("[data-ticket-back]")?.addEventListener("click", showTicketsPage);
+    q("[data-ticket-back]")?.addEventListener("click", () => {
+  showTicketsPage(document.body.dataset.ticketTab || "mine");
+});
     const replyForm = q("[data-ticket-reply-form]");
 
 replyForm?.addEventListener("submit", async (event) => {
@@ -2644,7 +2763,7 @@ if (!document.body.dataset.ticketCloseBound) {
         status: "closed"
       });
 
-      showTicketsPage();
+      showTicketsPage(document.body.dataset.ticketTab || "mine");
     } catch (error) {
       alert(error.message);
       button.disabled = false;
