@@ -452,7 +452,7 @@ console.log("[TICKETS ROLE]", {
     uuid: session.uuid,
     username: session.username,
     group,
-    isStaff: group === "owner"
+    isStaff: String(session.uuid).trim().toLowerCase() === String(process.env.TICKET_OWNER_UUID || "").trim().toLowerCase()
   };
 }
 
