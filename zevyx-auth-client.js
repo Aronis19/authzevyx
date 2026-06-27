@@ -1054,7 +1054,7 @@ html:not(.dark) .mobile-account-card strong {
   Změna herního jména
 </button>
 
-  <button type="button" class="dash-nav-button">
+  <button type="button" class="dash-nav-button" data-page-open="password">
     <span class="dash-nav-icon">
       <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
     </span>
@@ -1233,7 +1233,7 @@ html:not(.dark) .mobile-account-card strong {
     Změna herního jména
   </button>
 
-  <button type="button" class="mobile-sheet-row">
+  <button type="button" class="mobile-sheet-row" data-page-open="password">
     <span>
       <svg viewBox="0 0 24 24">
         <rect x="5" y="10" width="14" height="10" rx="2"/>
@@ -1391,6 +1391,127 @@ const showUsernamePage = () => {
     loader?.classList.remove("is-loading");
   }, 450);
 };
+
+const showPasswordPage = () => {
+  const loader = q("[data-top-loader]");
+
+  loader?.classList.add("is-loading");
+  closeMobileSheets();
+
+  window.setTimeout(() => {
+    document.body.dataset.zevyxPage = "password";
+
+    q(".dash-header").innerHTML = `
+      <span>Profil</span>
+      <span style="margin:0 8px">›</span>
+      <strong style="color:var(--dash-text)">Změna hesla</strong>
+    `;
+
+    q(".dash-content").innerHTML = `
+<h1 class="dash-title" style="display:flex;align-items:center;gap:8px">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <circle cx="7.5" cy="15.5" r="5.5"/>
+    <path d="m21 2-9.6 9.6"/>
+    <path d="m15.5 7.5 1.9 1.9"/>
+    <path d="m18.5 4.5 1.9 1.9"/>
+  </svg>
+  ZMĚNA HESLA
+</h1>
+
+      <form data-change-password-form style="display:flex;flex-direction:column;gap:12px">
+        <label style="font-size:12px;font-weight:700">
+          Momentální heslo
+          <input
+            type="password"
+            name="currentPassword"
+            placeholder="********"
+            autocomplete="current-password"
+            style="width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--dash-border);border-radius:7px;background:var(--dash-panel);color:var(--dash-text);font:inherit;box-sizing:border-box"
+          >
+        </label>
+
+        <label style="font-size:12px;font-weight:700">
+          Nové heslo
+          <input
+            type="password"
+            name="newPassword"
+            placeholder="********"
+            autocomplete="new-password"
+            style="width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--dash-border);border-radius:7px;background:var(--dash-panel);color:var(--dash-text);font:inherit;box-sizing:border-box"
+          >
+        </label>
+
+        <label style="font-size:12px;font-weight:700">
+          Potvrdit nové heslo
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="********"
+            autocomplete="new-password"
+            style="width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--dash-border);border-radius:7px;background:var(--dash-panel);color:var(--dash-text);font:inherit;box-sizing:border-box"
+          >
+        </label>
+
+        <div data-password-message></div>
+
+        <button
+          type="submit"
+          style="width:100%;border:0;border-radius:7px;padding:11px 14px;background:var(--dash-text);color:var(--dash-bg);font:inherit;font-weight:700;cursor:pointer"
+        >
+          🔑 Změnit heslo
+        </button>
+      </form>
+    `;
+
+    document.querySelectorAll(".dash-nav-button").forEach((button) => {
+      button.classList.toggle(
+        "active",
+        button.dataset.pageOpen === "password"
+      );
+    });
+
+    loader?.classList.remove("is-loading");
+const passwordForm = q("[data-change-password-form]");
+
+passwordForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const currentPassword = q('[name="currentPassword"]', passwordForm).value;
+  const newPassword = q('[name="newPassword"]', passwordForm).value;
+  const confirmPassword = q('[name="confirmPassword"]', passwordForm).value;
+  const message = q("[data-password-message]");
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    message.textContent = "Vyplň všechna pole.";
+    message.style.color = "#f87171";
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    message.textContent = "Nová hesla se neshodují.";
+    message.style.color = "#f87171";
+    return;
+  }
+
+  message.textContent = "Hesla souhlasí.";
+  message.style.color = "#4ade80";
+});
+  }, 450);
+};
+
+document.querySelectorAll('[data-page-open="password"]').forEach((button) => {
+  button.addEventListener("click", showPasswordPage);
+});
 
 document.querySelectorAll('[data-page-open="username"]').forEach((button) => {
   button.addEventListener("click", showUsernamePage);
@@ -1582,9 +1703,13 @@ const updateProfile = async () => {
       freshUser.rankPermanent !== oldUser.rankPermanent ||
       freshUser.playedTime !== oldUser.playedTime;
 
-    if (changed && document.body.dataset.zevyxPage !== "username") {
-      profile(freshUser);
-    }
+if (
+  changed &&
+  document.body.dataset.zevyxPage !== "username" &&
+  document.body.dataset.zevyxPage !== "password"
+) {
+  profile(freshUser);
+}
   } catch {
 
   }

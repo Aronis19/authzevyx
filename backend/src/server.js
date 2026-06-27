@@ -560,6 +560,91 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+app.post("/api/change-password", async (req, res) => {
+  try {
+    const username = cleanUsername(req.body.username);
+    const currentPassword = req.body.currentPassword;
+    const newPassword = req.body.newPassword;
+
+    if (!validateUsername(username)) {
+      return res.status(400).json({
+        ok: false,
+        error: "Neplatné herní jméno."
+      });
+    }
+
+    if (
+      typeof currentPassword !== "string" ||
+      currentPassword.length < 1 ||
+      currentPassword.length > 128
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: "Zadej momentální heslo."
+      });
+    }
+
+    if (!validatePassword(newPassword)) {
+      return res.status(400).json({
+        ok: false,
+        error: "Nové heslo musí mít alespoň 6 znaků."
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        ok: false,
+        error: "Nové heslo musí být jiné."
+      });
+    }
+
+    const columns = await getColumns();
+    const user = await findUser(columns, username);
+
+    if (!user || !verifyAuthMeSha256(currentPassword, user.password)) {
+      return res.status(401).json({
+        ok: false,
+        error: "Momentální heslo není správné."
+      });
+    }
+
+    const updates = [
+      `${quote("password")} = :passwordHash`
+    ];
+
+    if (columns.has("isLogged")) {
+      updates.push(`${quote("isLogged")} = 0`);
+    }
+
+    if (columns.has("hasSession")) {
+      updates.push(`${quote("hasSession")} = 0`);
+    }
+
+    await pool.execute(
+      `UPDATE ${quote(tableName)}
+       SET ${updates.join(", ")}
+       WHERE LOWER(${quote("username")}) = LOWER(:username)
+       LIMIT 1`,
+      {
+        username: user.username,
+        passwordHash: createAuthMeSha256(newPassword)
+      }
+    );
+
+    return res.json({
+      ok: true,
+      message: "Heslo bylo změněno. Na serveru se znovu přihlas."
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      ok: false,
+      error: "Serverová chyba při změně hesla."
+    });
+  }
+});
+
 app.post("/api/forgot-password", async (req, res) => {
   try {
     const identifier = String(req.body.identifier || req.body.email || req.body.username || "").trim();
