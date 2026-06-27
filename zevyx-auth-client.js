@@ -2597,9 +2597,30 @@ const showTicketDetailPage = async (ticketId) => {
                         </span>
                       </div>
 
-                      <div style="margin-top:5px;white-space:pre-wrap;line-height:1.5;font-size:14px">
-                        ${esc(message.message).replaceAll("\\n", "\n")}
-                      </div>
+<div
+  style="
+    display:inline-block;
+    max-width:100%;
+    margin-top:6px;
+    padding:10px 12px;
+    border:1px solid var(--dash-border);
+    border-radius:${
+      message.author_role === "staff"
+        ? "12px 12px 4px 12px"
+        : "12px 12px 12px 4px"
+    };
+    background:${
+      message.author_role === "staff"
+        ? "var(--dash-panel-hover)"
+        : "var(--dash-active)"
+    };
+    white-space:pre-wrap;
+    line-height:1.5;
+    font-size:14px;
+  "
+>
+  ${esc(message.message).replaceAll("\\n", "\n")}
+</div>
                     </div>
                   </div>
                 `).join("")
