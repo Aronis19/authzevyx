@@ -1450,11 +1450,11 @@ const showPasswordPage = () => {
   type="submit"
   style="
     width:100%;
-    border:1px solid var(--dash-border);
+    border:1px solid #ffffff;
     border-radius:10px;
     padding:12px 14px;
-    background:var(--dash-panel);
-    color:var(--dash-text);
+    background:#ffffff;
+    color:#111827;
     font:inherit;
     font-weight:700;
     cursor:pointer;
@@ -1463,7 +1463,12 @@ const showPasswordPage = () => {
     justify-content:center;
     gap:8px;
     box-sizing:border-box;
+    transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
   "
+  onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 18px rgba(255,255,255,.18)'"
+  onmouseleave="this.style.transform='';this.style.boxShadow=''"
+  onmousedown="this.style.transform='scale(.98)'"
+  onmouseup="this.style.transform='translateY(-2px)'"
 >
   <svg
     xmlns="http://www.w3.org/2000/svg"
