@@ -2697,6 +2697,22 @@ ${ticket.status === "closed" ? `
       "
     ></textarea>
 
+    <label
+  style="
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    margin-top:8px;
+    color:var(--dash-muted);
+    font-size:13px;
+    cursor:pointer;
+  "
+>
+  <input type="file" multiple hidden data-ticket-reply-files>
+  📎 Přidat soubory
+  <small data-ticket-reply-files-text></small>
+</label>
+
     <div style="display:flex;justify-content:flex-end;margin-top:8px">
       <button
         type="submit"
@@ -2762,6 +2778,17 @@ ${ticket.status === "closed" ? `
 });
     const replyForm = q("[data-ticket-reply-form]");
 
+    const replyFileInput = q("[data-ticket-reply-files]", replyForm);
+const replyFilesText = q("[data-ticket-reply-files-text]", replyForm);
+
+replyFileInput?.addEventListener("change", () => {
+  const files = [...replyFileInput.files];
+
+  replyFilesText.textContent = files.length
+    ? files.map((file) => file.name).join(", ")
+    : "";
+});
+
 replyForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -2770,13 +2797,25 @@ replyForm?.addEventListener("submit", async (event) => {
   const button = q('button[type="submit"]', replyForm);
   const message = input.value.trim();
 
-  if (!message) return;
+if (!message && !replyFileInput.files.length) {
+  notice.textContent = "Napiš zprávu nebo přilož soubor.";
+  notice.style.color = "#f87171";
+  return;
+}
 
   button.disabled = true;
   button.style.opacity = ".65";
 
   try {
-    await post(`/api/tickets/${ticketId}/messages`, { message });
+    const formData = new FormData();
+
+formData.append("message", message);
+
+for (const file of replyFileInput.files) {
+  formData.append("files", file);
+}
+
+await postForm(`/api/tickets/${ticketId}/messages`, formData);
     showTicketDetailPage(ticketId);
   } catch (error) {
     notice.textContent = error.message;

@@ -886,10 +886,10 @@ app.post("/api/tickets/:ticketId/messages", ticketUpload.array("files", 5), asyn
       });
     }
 
-    if (message.length < 1 || message.length > 5000) {
+    if ((!message && !files.length) || message.length > 5000) {
       return res.status(400).json({
         ok: false,
-        error: "Zpráva musí mít 1 až 5000 znaků."
+        error: "Napiš zprávu nebo přilož soubor."
       });
     }
 
