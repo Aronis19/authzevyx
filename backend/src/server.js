@@ -800,6 +800,20 @@ app.get("/api/tickets/:ticketId", async (req, res) => {
       });
     }
 
+const [messages] = await pool.execute(
+  `SELECT
+     id,
+     author_uuid,
+     author_username,
+     author_role,
+     message,
+     created_at
+   FROM zevyx_panel_ticket_messages
+   WHERE ticket_id = :ticketId
+   ORDER BY created_at ASC`,
+  { ticketId }
+);
+
 const [attachments] = await pool.execute(
   `SELECT
      id,
@@ -835,20 +849,6 @@ const messagesWithAttachments = messages.map((message) => ({
   attachments: attachmentsByMessage.get(String(message.id)) || []
 }));
 
-    const [messages] = await pool.execute(
-      `SELECT
-         id,
-         author_uuid,
-         author_username,
-         author_role,
-         message,
-         created_at
-       FROM zevyx_panel_ticket_messages
-       WHERE ticket_id = :ticketId
-       ORDER BY created_at ASC`,
-      { ticketId }
-    );
-
     return res.json({
       ok: true,
       isStaff: actor.isStaff,
@@ -865,11 +865,12 @@ const messagesWithAttachments = messages.map((message) => ({
   }
 });
 
-app.post("/api/tickets/:ticketId/messages", async (req, res) => {
+app.post("/api/tickets/:ticketId/messages", ticketUpload.array("files", 5), async (req, res) => {
   try {
     const actor = await getPanelActor(req);
     const ticketId = Number(req.params.ticketId);
     const message = String(req.body.message || "").trim();
+    const files = validateTicketFiles(req.files);
 
     if (!actor) {
       return res.status(401).json({
@@ -926,19 +927,26 @@ app.post("/api/tickets/:ticketId/messages", async (req, res) => {
       });
     }
 
-    await pool.execute(
-      `INSERT INTO zevyx_panel_ticket_messages
-        (ticket_id, author_uuid, author_username, author_role, message)
-       VALUES
-        (:ticketId, :authorUuid, :authorUsername, :authorRole, :message)`,
-      {
-        ticketId,
-        authorUuid: actor.uuid,
-        authorUsername: actor.username,
-        authorRole: actor.isStaff ? "staff" : "player",
-        message
-      }
-    );
+const [messageResult] = await pool.execute(
+  `INSERT INTO zevyx_panel_ticket_messages
+    (ticket_id, author_uuid, author_username, author_role, message)
+   VALUES
+    (:ticketId, :authorUuid, :authorUsername, :authorRole, :message)`,
+  {
+    ticketId,
+    authorUuid: actor.uuid,
+    authorUsername: actor.username,
+    authorRole: actor.isStaff ? "staff" : "player",
+    message
+  }
+);
+
+await storeTicketFiles({
+  ticketId,
+  messageId: messageResult.insertId,
+  files,
+  connection: pool
+});
 
     if (actor.isStaff) {
       await pool.execute(
