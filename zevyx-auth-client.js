@@ -2665,12 +2665,65 @@ const showTicketDetailPage = async (ticketId) => {
 >
   ${esc(message.message).replaceAll("\\n", "\n")}
 </div>
+
+${
+  Array.isArray(message.attachments) && message.attachments.length
+    ? `
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+        ${message.attachments.map((attachment) => {
+          const isImage = String(attachment.content_type || "").startsWith("image/");
+
+          return isImage
+            ? `
+              <a
+                href="${esc(attachment.url)}"
+                target="_blank"
+                rel="noopener"
+                style="display:block;max-width:260px"
+              >
+                <img
+                  src="${esc(attachment.url)}"
+                  alt="${esc(attachment.original_name)}"
+                  style="
+                    display:block;
+                    width:100%;
+                    max-height:220px;
+                    object-fit:cover;
+                    border:1px solid var(--dash-border);
+                    border-radius:8px;
+                  "
+                >
+              </a>
+            `
+            : `
+              <a
+                href="${esc(attachment.url)}"
+                target="_blank"
+                rel="noopener"
+                style="
+                  display:inline-flex;
+                  align-items:center;
+                  gap:7px;
+                  max-width:100%;
+                  padding:8px 10px;
+                  border:1px solid var(--dash-border);
+                  border-radius:8px;
+                  background:var(--dash-panel-hover);
+                  color:var(--dash-text);
+                  font-size:13px;
+                  text-decoration:none;
+                "
+              >
+                📎 ${esc(attachment.original_name)}
+              </a>
+            `;
+        }).join("")}
+      </div>
+    `
+    : ""
+}
                     </div>
                   </div>
-                `).join("")
-                : `<div style="padding:18px 0;color:var(--dash-muted)">Zatím tu nejsou žádné zprávy.</div>`
-            }
-          </div>
 
 ${ticket.status === "closed" ? `
   <div style="margin-top:14px;color:var(--dash-muted);font-size:13px">
