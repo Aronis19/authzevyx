@@ -1132,13 +1132,6 @@ html:not(.dark) .mobile-account-card strong {
     Změna hesla
   </button>
 
-  <button type="button" class="dash-nav-button">
-    <span class="dash-nav-icon">
-      <svg viewBox="0 0 24 24"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-8"/><path d="M22 19V3"/></svg>
-    </span>
-    Statistiky
-  </button>
-
   <div class="dash-nav-title" style="margin-top:18px">Podpora</div>
 
   <button type="button" class="dash-nav-button" data-page-open="ticket-create">
