@@ -310,7 +310,7 @@ const rankImage = rankImages[rankName.toLowerCase()];
           ? `<img
                src="${rankImage}"
                alt="${esc(rankName)}"
-               style="display:block;max-width:180px;max-height:38px;object-fit:contain"
+               style="display:block;width:170px;height:auto;max-height:48px;object-fit:contain;object-position:left center"
              >`
           : esc(rankName)
       }
