@@ -287,11 +287,39 @@ function profile(user) {
   const avatarUrl = `https://visage.surgeplay.com/face/256/${encodeURIComponent(username)}`;
   const ipAddress = user.ip || "-";
 
+const rankImages = {
+  majitel: "./assets/ranks/majitel_rank.png",
+  default: "./assets/ranks/hrac_rank.png",
+  hrac: "./assets/ranks/hrac_rank.png",
+  "hráč": "./assets/ranks/hrac_rank.png"
+};
+
+const rankName = String(user.rank || "Default");
+const rankImage = rankImages[rankName.toLowerCase()];
+
   const rows = [
     ["Herní Jméno", user.username || "-"],
     ["E-mailová Adresa", user.email || "Funkce zatím vypnuta."],
     ["UUID", user.uuid || "-"],
-    ["Hodnost", `${esc(user.rank || "Hráč")} <span style="margin-left:6px;font-size:14px;font-weight:400;opacity:.8;color:#757575;">(${user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})</span>`],
+    [
+  "Hodnost",
+  `
+    <div style="display:flex;align-items:center;gap:8px">
+      ${
+        rankImage
+          ? `<img
+               src="${rankImage}"
+               alt="${esc(rankName)}"
+               style="display:block;max-width:130px;max-height:28px;object-fit:contain"
+             >`
+          : esc(rankName)
+      }
+      <span style="font-size:14px;font-weight:400;opacity:.8;color:#757575;">
+        (${user.rankExpiresAt ? "Dočasně do " + formatDate(user.rankExpiresAt) : "Trvale"})
+      </span>
+    </div>
+  `
+],
 ["IP Adresa", `
   <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
     <span data-ip-value>${ipAddress === "-" ? "-" : "**.***.**.**"}</span>
