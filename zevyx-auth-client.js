@@ -2724,7 +2724,14 @@ ${
 }
                     </div>
                   </div>
-
+                `).join("")
+                : `
+                  <div style="padding:18px 0;color:var(--dash-muted)">
+                    Zatím tu nejsou žádné zprávy.
+                  </div>
+                `
+            }
+          </div>
 ${ticket.status === "closed" ? `
   <div style="margin-top:14px;color:var(--dash-muted);font-size:13px">
     Tento ticket je zavřený.
